@@ -5,6 +5,7 @@ from models.ride_model import RideModel
 from handlers.base_handler import BaseHandler
 import datetime
 import re
+from utils.start_buttons_utils import generate_start_buttons
 
 
 class DriverHandler(BaseHandler):
@@ -66,7 +67,7 @@ class DriverHandler(BaseHandler):
                                   reply_markup=markup)
 
     def set_places(self, message, places):
-        self.ride.places = places
+        self.ride.places = self.ride.free_places = places
         markup = types.InlineKeyboardMarkup()
         passengers_count = []
         for i in range(3, 8):
@@ -104,13 +105,17 @@ class DriverHandler(BaseHandler):
     def set_car_color(self, message):
         self.ride.car_color = message.text
         self.ride.user_name = message.from_user.username
-        self.bot.send_message(message.chat.id, f"Ok, we registered your ride:\n"
+        self.ride.user_id = message.from_user.id
+        markup = generate_start_buttons(message)
+        self.bot.send_message(message.chat.id, f"Ok, we registered your ride:\n\n"
                                                f"From - {self.ride.from_city}\n"
                                                f"To - {self.ride.to_city}\n"
                                                f"Date - {self.ride.date}\n"
-                                               f"Places - {self.ride.places}\n"
-                                               f"Price - {self.ride.price}\n"
-                                               f"Car - {self.ride.car_mark} {self.ride.car_number}, color {self.ride.car_color}")
+                                               f"Places - {self.ride.free_places} / {self.ride.places}\n"
+                                               f"Price - {self.ride.price}֏\n"
+                                               f"🚙 {self.ride.car_color} {self.ride.car_mark} "
+                                               f"{str(self.ride.car_number).upper().replace(" ", "")}",
+                              reply_markup=markup)
         self.ride.save_to_db()
         self.ride = RideModel()
 

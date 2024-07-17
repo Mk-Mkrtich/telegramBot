@@ -62,23 +62,65 @@ class PassengerHandler(BaseHandler):
             markup.row(*passengers_count)
             self.bot.send_message(callback.message.chat.id, "Please write the number of free places 👤.",
                                   reply_markup=markup)
-            # self.bot.register_next_step_handler(callback.message, self.finish_ride_find)
 
     def finish_ride_find(self, message, places):
-        self.ride.places = places
-        rides = self.ride.get_matching_rides(self.ride.from_city, self.ride.to_city, self.ride.date, self.ride.places)
+        self.ride.free_places = places
+        self.handle_ride_find(message, 'first')
+
+
+    def handle_ride_find(self, message, action):
+        rides = self.ride.get_matching_rides(self.ride.from_city, self.ride.to_city, self.ride.date,
+                                             self.ride.free_places)
         if len(rides) == 0:
             return self.bot.send_message(message.chat.id, "No rides found.")
-        rides_list = "OK, this is a list of rides. \n\n"
+
+        rides_text = ("OK, this is a list of rides. \n\n"
+                      f"From - {self.ride.from_city}\n"
+                      f"To - {self.ride.to_city}\n"
+                      f"Date - {self.ride.date}\n"
+                      f"Free places - {self.ride.free_places}")
+
+        markup = types.InlineKeyboardMarkup()
+
         for ride in rides:
-            rides_list += (
-                f"User - @{ride['user_name']}\n"
-                f"From - {ride['from_city']}\n"
-                f"To - {ride['to_city']}\n"
-                f"Date - {ride['ride_date']}\n"
-                f"Places - {str(ride['places'])}\n"
-                f"Price - {str(ride['price'])}\n"
-                f"Car - {ride['car_mark']} {ride['car_number']} color {ride['car_color']}\n\n"
-            )
-        self.bot.send_message(message.chat.id, rides_list)
-        self.ride = RideModel()
+            btn = types.InlineKeyboardButton(f"Price - {str(ride['price'])}֏ "
+                                             f" 🚙 {ride['car_color']} {ride['car_mark']} "
+                                             f"{str(ride['car_number']).upper().replace(" ", "")} ",
+                                             callback_data="showRide_" + str(ride['id']))
+            markup.add(btn)
+        if len(rides) > 10:
+            first = types.InlineKeyboardButton("⬅️⬅️", callback_data="firstRides_first")
+            prev = types.InlineKeyboardButton("⬅️️", callback_data="prevRides_prev")
+            next = types.InlineKeyboardButton("➡️", callback_data="nextRides_next")
+            last = types.InlineKeyboardButton("➡️➡️", callback_data="lastRides_last")
+            markup.row(first, prev, next, last)
+
+        self.bot.send_message(message.chat.id, rides_text, reply_markup=markup)
+
+
+    def show_ride(self, message, id):
+        ride = self.ride.find_matching_ride(id)
+        if ride is None:
+            return self.bot.send_message(message.chat.id, "Ride not found.")
+
+        rides_text = (f"From - {ride['from_city']}\n"
+                      f"To - {ride['to_city']}\n"
+                      f"Date - {ride['ride_date']}\n"
+                      f"Places - {ride['free_places']} / {ride['places']}\n"
+                      f"Price - {ride['price']}֏\n"
+                      f"🚙 - {ride['car_color']} {ride['car_mark']} "
+                      f"{str(ride['car_number']).upper().replace(" ", "")}\n\n"
+                      f"Select places count for BOOKING"
+                      )
+
+        markup = types.InlineKeyboardMarkup()
+        places_count = []
+        for i in range(1, int(ride['free_places']) + 1):
+            btn = types.InlineKeyboardButton(str(i),
+                                             callback_data="bookRide_" + str(ride['id']) + "_" + str(i))
+            places_count.append(btn)
+
+        markup.row(*places_count)
+        back = types.InlineKeyboardButton("Back to list", callback_data="firstRides_first")
+        markup.add(back)
+        self.bot.send_message(message.chat.id, rides_text, reply_markup=markup)
