@@ -1,16 +1,18 @@
+from dotenv import load_dotenv
+import os
 import telebot
-from handlers.driver_handler import DriverHandler
-from handlers.passenger_handler import PassengerHandler
-from handlers.booking_handler import BookingHandler
-from utils.city_utils import cities
-from utils.start_buttons_utils import generate_start_buttons
+from controllers.driver_controller import DriverController
+from controllers.passenger_controller import PassengerController
+from configs.cities import cities
+from components.start_buttons_component import generate_start_buttons
 
-bot = telebot.TeleBot('7281065108:AAD2mn4uDewytqYRsTtR29SZ0-s8jBkCyA4')
+load_dotenv()
+
+bot = telebot.TeleBot(os.getenv('TELEGRAM_TOKEN'))
 role = "none"
 
-driver_handler = DriverHandler(bot)
-passenger_handler = PassengerHandler(bot)
-booking_handler = BookingHandler(bot)
+driver_handler = DriverController(bot)
+passenger_handler = PassengerController(bot)
 
 
 @bot.message_handler(commands=['start'])
@@ -34,16 +36,21 @@ def callback(callback):
     elif data == 'driver':
         if callback.message.chat.username is None:
             return bot.send_message(callback.message.chat.id, "Please add userName to your account")
-        role = "driver"
+        role = data
         driver_handler.start(callback.message)
     elif data == 'passenger':
-        role = "passenger"
+        role = data
         passenger_handler.start(callback.message)
-    elif data in cities:
+    elif data == "fromCity" and fullData[1] in cities:
         if role == "driver":
-            driver_handler.handle_city_selection(callback.message, data)
+            driver_handler.handle_from_city_selection(callback.message, fullData[1])
         else:
-            passenger_handler.handle_city_selection(callback.message, data)
+            passenger_handler.handle_from_city_selection(callback.message, fullData[1])
+    elif data == "toCity" and fullData[1] in cities:
+        if role == "driver":
+            driver_handler.handle_to_city_selection(callback.message, fullData[1])
+        else:
+            passenger_handler.handle_to_city_selection(callback.message, fullData[1])
     elif data in ['prev', 'next', 'day']:
         if role == "driver":
             driver_handler.handle_calendar(callback)
@@ -63,7 +70,7 @@ def callback(callback):
     elif data == "showRide":
         passenger_handler.show_ride(callback.message, fullData[1])
     elif data == "bookRide":
-        booking_handler.book_ride(callback.message, fullData[1], fullData[2])
+        passenger_handler.book_ride(callback.message, fullData[1], fullData[2])
     elif data == "ridesList":
         pass
     elif data == "booksList":

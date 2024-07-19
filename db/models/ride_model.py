@@ -30,8 +30,7 @@ class RideModel:
         conn.commit()
         conn.close()
 
-    @staticmethod
-    def get_matching_rides(from_city, to_city, date, free_places):
+    def get_matching_rides(self, from_city, to_city, date, free_places):
         conn = db_connect()
         cur = conn.cursor()
         cur.execute(
@@ -46,8 +45,7 @@ class RideModel:
         conn.close()
         return rows
 
-    @staticmethod
-    def find_matching_ride(id):
+    def find_matching_ride(self, id):
         conn = db_connect()
         cur = conn.cursor()
         cur.execute(

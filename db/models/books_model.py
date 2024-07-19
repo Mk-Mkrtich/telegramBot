@@ -23,8 +23,7 @@ class BooksModel:
         conn.commit()
         conn.close()
 
-    @staticmethod
-    def get_book(id):
+    def get_book(self, id):
         conn = db_connect()
         cur = conn.cursor()
         cur.execute(
@@ -40,8 +39,7 @@ class BooksModel:
         return rows
 
 
-    @staticmethod
-    def get_book_by_user(userId):
+    def get_book_by_user(self, userId):
         conn = db_connect()
         cur = conn.cursor()
         cur.execute(

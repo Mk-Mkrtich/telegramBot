@@ -1,13 +1,11 @@
-from models.books_model import BooksModel
-from models.ride_model import RideModel
-from handlers.base_handler import BaseHandler
-from utils.start_buttons_utils import generate_start_buttons
+from db.models.books_model import BooksModel
+from db.models.ride_model import RideModel
+from components.start_buttons_component import generate_start_buttons
 
 
-class BookingHandler(BaseHandler):
+class BookingRepository:
 
     def __init__(self, bot):
-        super().__init__(bot)
         self.bookings = BooksModel()
         self.ride = RideModel()
         self.bot = bot

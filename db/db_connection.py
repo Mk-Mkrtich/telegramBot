@@ -1,13 +1,5 @@
-from pydantic_settings import BaseSettings
-from pydantic import Field
 import pymysql
-
-class Settings(BaseSettings):
-    db_host: str = 'localhost'
-    db_port: int = 3306
-    db_name: str = 'cog'
-    db_user: str = 'root'
-    db_password: str = ''
+from configs.database import Settings
 
 def db_connect():
     settings = Settings()
