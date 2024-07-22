@@ -38,9 +38,9 @@ class BookingRepository:
                                                f"Places - {ride_data['free_places']} / {ride_data['places']}\n"
                                                f"Price - {ride_data['price']}֏\n"
                                                f"🚙 {ride_data['car_color']} {ride_data['car_mark']} "
-                                               f"{str(ride_data['car_number']).upper().replace(" ", "")}",
+                                               f"{str(ride_data['car_number']).upper().replace(" ", "")}")
+        self.bot.send_message(message.chat.id, 'Let me know, how you want to use the bot: as driver or as passenger?',
                               reply_markup=markup)
-
         self.bot.send_message(ride_data['user_id'], f'Hi {ride_data['user_name']}, User {username} booked '
                                                     f'{places} Place/s on Your ride at {ride_data['ride_date']} From '
                                                     f'{ride_data['from_city']} to {ride_data['to_city']}, '

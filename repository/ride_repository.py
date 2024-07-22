@@ -36,7 +36,7 @@ class RideRepository:
             markup.row(*places_count)
         back = types.InlineKeyboardButton("Back to list", callback_data="firstRides_first")
         markup.add(back)
-        self.bot.send_message(message.chat.id, rides_text, reply_markup=markup)
+        return {"markup": markup, "rides_text": rides_text}
 
     def find_ride(self, data):
         rides = self.ride.get_matching_rides(data['from_city'], data['to_city'], data['date'],
@@ -67,4 +67,4 @@ class RideRepository:
 
         markup.row(*generate(len(rides)))
 
-        self.bot.send_message(data['id'], rides_text, reply_markup=markup)
+        return {"markup": markup, "rides_text": rides_text}
