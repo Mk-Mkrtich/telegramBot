@@ -10,7 +10,7 @@ class RideRepository:
         self.ride = RideModel()
         self.bot = bot
 
-    def show_ride(self, message, id):
+    def show_ride(self, message, id, role):
         ride = self.ride.find_matching_ride(id)
         if ride is None:
             return self.bot.send_message(message.chat.id, "Ride not found.")
@@ -34,7 +34,11 @@ class RideRepository:
                 places_count.append(btn)
 
             markup.row(*places_count)
-        back = types.InlineKeyboardButton("Back to list", callback_data="firstRides_first")
+        if role == "passenger":
+            back = types.InlineKeyboardButton("Back to list", callback_data="firstRides_first")
+        else:
+            back = types.InlineKeyboardButton("Back to list", callback_data="ridesList_first")
+
         markup.add(back)
         return {"markup": markup, "rides_text": rides_text}
 
@@ -62,9 +66,34 @@ class RideRepository:
             ride_button_text += (f"Price - {str(ride['price'])}֏ "
                                  f" 🚙 {ride['car_color']} {ride['car_mark']} "
                                  f"{str(ride['car_number']).upper().replace(" ", "")} ")
-            btn = types.InlineKeyboardButton(ride_button_text, callback_data="showRide_" + str(ride['id']))
+            btn = types.InlineKeyboardButton(ride_button_text, callback_data="showRide_" + str(ride['id'])
+                                                                             + "_" + data['role'])
             markup.add(btn)
 
-        markup.row(*generate(len(rides)))
+        markup.row(*generate(len(rides), data['role']))
+
+        return {"markup": markup, "rides_text": rides_text}
+
+    def ride_list(self, user_id):
+        rides = self.ride.get_ride_list_by_user_id(user_id)
+
+        if len(rides) == 0:
+            return self.bot.send_message(user_id, "You Haven't Rides yet.")
+
+        rides_text = "OK, this is a list of rides. \n\n"
+
+        markup = types.InlineKeyboardMarkup()
+
+        for ride in rides:
+            ride_button_text = "🔴 "
+
+            ride_button_text += (f"Price - {str(ride['price'])}֏ "
+                                 f" 🚙 {ride['car_color']} {ride['car_mark']} "
+                                 f"{str(ride['car_number']).upper().replace(" ", "")} ")
+            btn = types.InlineKeyboardButton(ride_button_text, callback_data="showRideDriver_" + str(ride['id'])
+                                                                             + "_" + "driver")
+            markup.add(btn)
+
+        markup.row(*generate(len(rides), 'driver'))
 
         return {"markup": markup, "rides_text": rides_text}

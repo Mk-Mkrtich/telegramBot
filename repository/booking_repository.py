@@ -1,6 +1,5 @@
 from db.models.books_model import BooksModel
 from db.models.ride_model import RideModel
-from components.start_buttons_component import generate_start_buttons
 
 
 class BookingRepository:
@@ -27,7 +26,6 @@ class BookingRepository:
         self.bookings.save_to_db()
         ride_data = self.ride.update(ride_id, (int(ride['free_places']) - int(places)))
 
-        markup = generate_start_buttons(message)
         self.bot.send_message(message.chat.id, f"Ok, we registered your Book:\n\n"
                                                f"@{username} you booked {places} Place/s on ride by "
                                                f"{ride_data['user_name']}, now you can contact with "
@@ -39,8 +37,7 @@ class BookingRepository:
                                                f"Price - {ride_data['price']}֏\n"
                                                f"🚙 {ride_data['car_color']} {ride_data['car_mark']} "
                                                f"{str(ride_data['car_number']).upper().replace(" ", "")}")
-        self.bot.send_message(message.chat.id, 'Let me know, how you want to use the bot: as driver or as passenger?',
-                              reply_markup=markup)
+
         self.bot.send_message(ride_data['user_id'], f'Hi {ride_data['user_name']}, User {username} booked '
                                                     f'{places} Place/s on Your ride at {ride_data['ride_date']} From '
                                                     f'{ride_data['from_city']} to {ride_data['to_city']}, '

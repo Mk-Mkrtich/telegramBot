@@ -1,5 +1,6 @@
 from db.db_connection import db_connect
 
+
 class RideModel:
     def __init__(self):
         self.from_city = ''
@@ -86,3 +87,17 @@ class RideModel:
             conn.close()
         return row
 
+    def get_ride_list_by_user_id(self, user_id):
+        conn = db_connect()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT * FROM rides
+            WHERE user_id = %s
+            """,
+            user_id
+        )
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return rows
