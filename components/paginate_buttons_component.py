@@ -7,7 +7,8 @@ def generate(ride_len, role):
         prev_b = types.InlineKeyboardButton("⬅️️", callback_data="rides_prev")
         next_b = types.InlineKeyboardButton("➡️", callback_data="rides_next")
         last_b = types.InlineKeyboardButton("➡️➡️", callback_data="rides_last")
-    else:
+        return [first_b, prev_b, next_b, last_b]
+    elif ride_len > 10 and role == "driver":
         first_b = types.InlineKeyboardButton("⬅️⬅️", callback_data="ridesList_first")
         prev_b = types.InlineKeyboardButton("⬅️️", callback_data="ridesList_prev")
         next_b = types.InlineKeyboardButton("➡️", callback_data="ridesList_next")

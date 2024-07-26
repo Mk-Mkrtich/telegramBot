@@ -11,23 +11,19 @@ class DriverController(BaseController):
     def set_places(self, message, places):
         if self.check_ignore("set_places_selection"):
             self.append_ignore("set_places_selection")
-            ids.add(message.message_id - 1)
             ids.add(message.message_id)
-            ids.add(message.message_id + 1)
             self.ride.places = self.ride.free_places = places
             markup = generate_price_buttons()
-            self.bot.send_message(message.chat.id, f"Selected places: {places}")
-            self.bot.send_message(message.chat.id, "Write the price ֏ per passenger.", reply_markup=markup)
+            ids.add(self.bot.send_message(message.chat.id, f"Selected places: {places}").id)
+            ids.add(self.bot.send_message(message.chat.id, "Write the price ֏ per passenger.", reply_markup=markup).id)
 
     def set_price(self, message, price):
         if self.check_ignore("set_price_selection"):
             self.append_ignore("set_price_selection")
-            ids.add(message.message_id - 1)
             ids.add(message.message_id)
-            ids.add(message.message_id + 1)
             self.ride.price = price
-            self.bot.send_message(message.chat.id, f"Selected price: {price}")
-            self.bot.send_message(message.chat.id, "Write your car number.")
+            ids.add(self.bot.send_message(message.chat.id, f"Selected price: {price}").id)
+            ids.add(self.bot.send_message(message.chat.id, "Write your car number.").id)
             self.bot.register_next_step_handler(message, self.set_car_number)
 
     def set_car_number(self, message):
@@ -35,37 +31,30 @@ class DriverController(BaseController):
             pattern = re.compile(r'^\d{2,3}\s*[a-zA-Z]{2}\s*\d{2,3}$')
 
             if not pattern.match(message.text):
-                ids.add(message.message_id - 1)
                 ids.add(message.message_id)
-                ids.add(message.message_id + 1)
-                self.bot.send_message(message.chat.id, "Try again: --> EXP: 123 AB 12 or 12 AB 123 <--",)
+                ids.add(self.bot.send_message(message.chat.id, "Try again: --> EXP: 123 AB 12 or 12 AB 123 <--",).id)
                 self.bot.register_next_step_handler(message, self.set_car_number)
             else:
                 self.append_ignore("set_car_number_selection")
-                ids.add(message.message_id - 1)
                 ids.add(message.message_id)
-                ids.add(message.message_id + 1)
                 self.ride.car_number = message.text
-                self.bot.send_message(message.chat.id, f"Your car mark: {message.text}")
-                self.bot.send_message(message.chat.id, "Write your car mark.")
+                ids.add(self.bot.send_message(message.chat.id, f"Your car mark: {message.text}").id)
+                ids.add(self.bot.send_message(message.chat.id, "Write your car mark.").id)
                 self.bot.register_next_step_handler(message, self.set_car_mark)
 
     def set_car_mark(self, message):
         if self.check_ignore("set_car_mark_selection"):
             self.append_ignore("set_car_mark_selection")
-            ids.add(message.message_id - 1)
             ids.add(message.message_id)
-            ids.add(message.message_id + 1)
             self.ride.car_mark = message.text
-            self.bot.send_message(message.chat.id, f"Your car mark: {message.text}")
-            self.bot.send_message(message.chat.id, "Write your car color.")
+            ids.add(self.bot.send_message(message.chat.id, f"Your car mark: {message.text}").id)
+            ids.add(self.bot.send_message(message.chat.id, "Write your car color.").id)
             self.bot.register_next_step_handler(message, self.set_car_color)
 
     def set_car_color(self, message):
         if self.check_ignore("set_car_color_selection"):
             self.append_ignore("set_car_color_selection")
             self.ride.car_color = message.text
-            ids.add(message.message_id - 1)
             ids.add(message.message_id)
             self.ride.user_name = message.from_user.username
             self.ride.user_id = message.from_user.id
@@ -85,12 +74,11 @@ class DriverController(BaseController):
     def get_ride_list(self, message, action):
         data = self.ride_repo.ride_list(message.chat.id)
         ids.add(message.message_id)
-        ids.add(message.message_id + 1)
         self.clear_history(message.chat.id)
-        self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup'])
+        ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
 
     def show_ride(self, message, id):
         ids.add(message.message_id)
         data = self.ride_repo.show_ride(message, id, "driver")
-        self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup'])
+        ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
 

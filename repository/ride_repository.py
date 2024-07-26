@@ -35,7 +35,7 @@ class RideRepository:
 
             markup.row(*places_count)
         if role == "passenger":
-            back = types.InlineKeyboardButton("Back to list", callback_data="firstRides_first")
+            back = types.InlineKeyboardButton("Back to list", callback_data="rides_first")
         else:
             back = types.InlineKeyboardButton("Back to list", callback_data="ridesList_first")
 

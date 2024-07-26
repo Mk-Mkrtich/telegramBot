@@ -1,5 +1,6 @@
 import calendar
 from telebot import types
+from configs.storage import ids
 
 from components.places_buttons_component import generate
 
@@ -61,7 +62,7 @@ class CalendarComponent:
         elif data[0] == 'day':
             year, month, day = int(data[1]), int(data[2]), int(data[3])
             ride.date = f"{year}-{month:02}-{day:02}"
-            bot.send_message(callback.message.chat.id, f"Selected date: {ride.date}")
+            ids.add(bot.send_message(callback.message.chat.id, f"Selected date: {ride.date}").id)
 
             return ['send', generate()]
 

@@ -23,28 +23,29 @@ class BooksModel:
         conn.commit()
         conn.close()
 
-    def get_book(self, id):
+    def get_book(self, book_id):
         conn = db_connect()
         cur = conn.cursor()
         cur.execute(
             """
             SELECT * FROM books
-            WHERE id = %s
+            join rides on (books.ride_id = rides.id)
+            WHERE books.id = %s
             """,
-            id
+            book_id
         )
-        rows = cur.fetchall()
+        row = cur.fetchone()
         cur.close()
         conn.close()
-        return rows
+        return row
 
-
-    def get_book_by_user(self, userId):
+    def get_books_by_user(self, userId):
         conn = db_connect()
         cur = conn.cursor()
         cur.execute(
             """
             SELECT * FROM books
+            join rides on (books.ride_id = rides.id)
             WHERE passenger_id = %s
             """,
             userId
@@ -53,3 +54,18 @@ class BooksModel:
         cur.close()
         conn.close()
         return rows
+
+    def delete_book(self, book_id):
+        conn = db_connect()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            DELETE FROM books
+            WHERE id = %s
+            """,
+            book_id
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return True

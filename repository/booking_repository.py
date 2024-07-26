@@ -1,5 +1,9 @@
+from telebot import types
+
+from components.paginate_buttons_component import generate
 from db.models.books_model import BooksModel
 from db.models.ride_model import RideModel
+from configs.storage import ids
 
 
 class BookingRepository:
@@ -12,7 +16,7 @@ class BookingRepository:
     def book_ride(self, message, ride_id, places):
         username = message.chat.username
         if not username:
-            return self.bot.send_message(message.chat.id, "Please add userName to your account")
+            return ids.add(self.bot.send_message(message.chat.id, "Please add userName to your account").id)
         self.bookings.ride_id = ride_id
         self.bookings.booked_places = places
         self.bookings.passenger_name = username
@@ -43,7 +47,47 @@ class BookingRepository:
                                                     f'{ride_data['from_city']} to {ride_data['to_city']}, '
                                                     f'now you can contact with @{username}.')
 
+    def get_books_list(self, user_id):
+        books = self.bookings.get_books_by_user(user_id)
+        markup = types.InlineKeyboardMarkup()
 
+        if len(books) == 0:
+            return {"markup": markup, "rides_text": "You Haven't Books yet."}
 
+        rides_text = "OK, this is a list of books. \n\n"
 
+        for book in books:
+            ride_button_text = (f"Price - {str(book['price'])}֏ "
+                                f" 🚙 {book['car_color']} {book['car_mark']} "
+                                f"{str(book['car_number']).upper().replace(" ", "")} ")
+            btn = types.InlineKeyboardButton(ride_button_text, callback_data="showBook_" + str(book['id']))
+            markup.add(btn)
 
+        markup.row(*generate(len(books), 'passenger'))
+
+        return {"markup": markup, "rides_text": rides_text}
+
+    def show_book(self, book_id):
+        book = self.bookings.get_book(book_id)
+        markup = types.InlineKeyboardMarkup()
+
+        rides_text = (f"You booked {str(book['booked_places'])} place/s on this ride. \n\n"
+                      f" 🚙 {book['car_color']} {book['car_mark']} "
+                      f"{str(book['car_number']).upper().replace(" ", "")} ")
+        btn = types.InlineKeyboardButton('Cancel the book', callback_data="cancelBook_" + str(book['id']))
+        back = types.InlineKeyboardButton("Back to list", callback_data="booksList")
+        markup.add(btn, back)
+        return {"markup": markup, "rides_text": rides_text}
+
+    def cancel_book(self, book_id):
+        book = self.bookings.get_book(book_id)
+        ride_id = book['ride_id']
+        self.ride.update(ride_id, (int(book['free_places']) + int(book['booked_places'])))
+
+        self.bot.send_message(book['user_id'], (f'Hi {book['user_name']}, one of Users is cancel the book, now you '
+                                                f'have {book['booked_places']} more free places'))
+        self.bookings.delete_book(book_id)
+
+        rides_text = "You cancel the book"
+
+        return {"rides_text": rides_text}
