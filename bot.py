@@ -94,6 +94,8 @@ def callback(callback):
         passenger_handler.book_ride(callback.message, fullData[1], fullData[2])
     elif data == "ridesList":
         driver_handler.get_ride_list(callback.message, fullData[1])
+    elif data == "cancelRide":
+        driver_handler.cancel_ride(callback.message, fullData[1])
     elif data == "booksList":
         passenger_handler.get_books_list(callback.message)
     elif data == "showBook":

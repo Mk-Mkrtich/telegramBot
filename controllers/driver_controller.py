@@ -32,7 +32,7 @@ class DriverController(BaseController):
 
             if not pattern.match(message.text):
                 ids.add(message.message_id)
-                ids.add(self.bot.send_message(message.chat.id, "Try again: --> EXP: 123 AB 12 or 12 AB 123 <--",).id)
+                ids.add(self.bot.send_message(message.chat.id, "Try again: --> EXP: 123 AB 12 or 12 AB 123 <--", ).id)
                 self.bot.register_next_step_handler(message, self.set_car_number)
             else:
                 self.append_ignore("set_car_number_selection")
@@ -82,3 +82,5 @@ class DriverController(BaseController):
         data = self.ride_repo.show_ride(message, id, "driver")
         ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
 
+    def cancel_ride(self, message, ride_id):
+        self.ride_repo.cancel_ride_by_id(message, self.bot, ride_id)
