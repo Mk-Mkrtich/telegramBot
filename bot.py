@@ -18,7 +18,12 @@ passenger_handler = PassengerController(bot)
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(message.chat.id, "Hello " + message.from_user.first_name +
-                     "This is a start text about this bot")
+                     " This is a start text about this bot")
+
+@bot.message_handler(commands=['help'])
+def start(message):
+    bot.send_message(message.chat.id, "Hello " + message.from_user.first_name +
+                     " This is a Help text about this bot")
 
 
 @bot.message_handler(commands=['driver'])
