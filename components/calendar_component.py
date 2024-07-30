@@ -1,17 +1,17 @@
 import calendar
 from telebot import types
+from datetime import datetime
 from configs.storage import ids
-
 from components.places_buttons_component import generate
-
 
 class CalendarComponent:
 
     def __init__(self):
-        self.year = 0
-        self.month = 0
+        self.year = datetime.now().year
+        self.month = datetime.now().month
 
     def generate_calendar_keyboard(self):
+        current_date = datetime.now()
         keyboard = types.InlineKeyboardMarkup()
 
         # Month and Year navigation
@@ -31,7 +31,13 @@ class CalendarComponent:
                 if day == 0:
                     row.append(types.InlineKeyboardButton(' ', callback_data='ignore'))
                 else:
-                    row.append(types.InlineKeyboardButton(str(day), callback_data=f'day_{self.year}_{self.month}_{day}'))
+                    if (self.year < current_date.year) or \
+                            (self.year == current_date.year and self.month < current_date.month) or \
+                            (self.year == current_date.year and self.month == current_date.month
+                             and day < current_date.day):
+                        row.append(types.InlineKeyboardButton(f'🚫{day}', callback_data='ignore'))
+                    else:
+                        row.append(types.InlineKeyboardButton(str(day), callback_data=f'day_{self.year}_{self.month}_{day}'))
             keyboard.row(*row)
 
         return keyboard

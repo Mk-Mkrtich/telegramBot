@@ -139,5 +139,17 @@ class RideModel(BaseModel):
         self.conn.commit()
         return True
 
+    def save_to_db(self):
+        self.cur.execute(
+            """
+            INSERT INTO rides (from_city, to_city, ride_date, places, free_places, 
+            price, car_mark, car_number, car_color, user_name, user_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (self.from_city, self.to_city, self.date, self.places, self.free_places,
+             self.price, self.car_mark, self.car_number, self.car_color, self.user_name, self.user_id)
+        )
+        self.conn.commit()
+
     def __del__(self):
         super().__del__()
