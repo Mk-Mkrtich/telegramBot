@@ -1,4 +1,5 @@
 from db.models.base_model import BaseModel
+from db.models.pagination import Paginator
 
 
 class RideModel(BaseModel):
@@ -15,32 +16,38 @@ class RideModel(BaseModel):
         self.car_color = ''
         self.user_name = ''
         self.user_id = ''
+        self.table_name = "rides"
+        self.page_size = 5
+        self.paginator = Paginator(self.cur, self.table_name, self.page_size)
 
-    def save_to_db(self):
-        self.cur.execute(
-            """
-            INSERT INTO rides (from_city, to_city, ride_date, places, free_places, 
-            price, car_mark, car_number, car_color, user_name, user_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """,
-            (self.from_city, self.to_city, self.date, self.places, self.free_places,
-             self.price, self.car_mark, self.car_number, self.car_color, self.user_name, self.user_id)
-        )
-        self.conn.commit()
+    def get_matching_rides(self, from_city, to_city, date, free_places, user_id, action="first"):
+        if action == 'next':
+            self.paginator.next_page()
+        elif action == 'prev':
+            self.paginator.prev_page()
+        elif action == 'first':
+            self.paginator.first_page()
+        elif action == 'last':
+            self.paginator.last_page()
 
-    def get_matching_rides(self, from_city, to_city, date, free_places, limit=None):
         query = """
-            SELECT * FROM rides
-            WHERE from_city LIKE %s AND to_city LIKE %s AND ride_date = %s AND free_places >= %s
+             SELECT * FROM rides
+            WHERE from_city LIKE %s AND to_city LIKE %s AND ride_date = %s AND free_places >= %s AND user_id NOT LIKE %s
             """
-        params = [from_city, to_city, date, free_places]
-        if limit is not None:
-            query += "LIMIT %s;"
-            params.append(limit + 1)
-
+        params = [from_city, to_city, date, free_places, user_id]
         self.cur.execute(
             query,
-            tuple(params)
+            params
+        )
+        count = self.cur.fetchall()
+        if self.paginator.total_pages <= 0:
+            self.paginator.update_total_pages(len(count))
+
+        params.extend([self.page_size, self.paginator.offset])
+        query += " ORDER BY id LIMIT %s OFFSET %s"
+        self.cur.execute(
+            query,
+            params
         )
         rows = self.cur.fetchall()
         return rows
@@ -71,18 +78,40 @@ class RideModel(BaseModel):
             SELECT * FROM rides
             WHERE id = %s
             """,
-            (id,)
+            id
         )
         row = self.cur.fetchone()
         return row
 
-    def get_ride_list_by_user_id(self, user_id):
-        self.cur.execute(
-            """
+    def get_ride_list_by_user_id(self, user_id, action="first"):
+        if action == 'next':
+            self.paginator.next_page()
+        elif action == 'prev':
+            self.paginator.prev_page()
+        elif action == 'first':
+            self.paginator.first_page()
+        elif action == 'last':
+            self.paginator.last_page()
+
+        query = """
             SELECT * FROM rides
             WHERE user_id = %s
-            """,
-            user_id
+              """
+        params = [user_id]
+
+        self.cur.execute(
+            query,
+            params
+        )
+        count = self.cur.fetchall()
+        if self.paginator.total_pages <= 0:
+            self.paginator.update_total_pages(len(count))
+
+        params.extend([self.page_size, self.paginator.offset])
+        query += " ORDER BY id LIMIT %s OFFSET %s"
+        self.cur.execute(
+            query,
+            params
         )
         rows = self.cur.fetchall()
         return rows

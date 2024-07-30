@@ -1,17 +1,10 @@
 from telebot import types
 
 
-def generate(ride_len, role):
-    if ride_len > 10 and role == "passenger":
-        first_b = types.InlineKeyboardButton("⬅️⬅️", callback_data="rides_first")
-        prev_b = types.InlineKeyboardButton("⬅️️", callback_data="rides_prev")
-        next_b = types.InlineKeyboardButton("➡️", callback_data="rides_next")
-        last_b = types.InlineKeyboardButton("➡️➡️", callback_data="rides_last")
-        return [first_b, prev_b, next_b, last_b]
-    elif ride_len > 10 and role == "driver":
-        first_b = types.InlineKeyboardButton("⬅️⬅️", callback_data="ridesList_first")
-        prev_b = types.InlineKeyboardButton("⬅️️", callback_data="ridesList_prev")
-        next_b = types.InlineKeyboardButton("➡️", callback_data="ridesList_next")
-        last_b = types.InlineKeyboardButton("➡️➡️", callback_data="ridesList_last")
-        return [first_b, prev_b, next_b, last_b]
-    return []
+def generate(type):
+    first_b = types.InlineKeyboardButton("⬅️⬅️", callback_data=f"{type}_first")
+    prev_b = types.InlineKeyboardButton("⬅️️", callback_data=f"{type}_prev")
+    next_b = types.InlineKeyboardButton("➡️", callback_data=f"{type}_next")
+    last_b = types.InlineKeyboardButton("➡️➡️", callback_data=f"{type}_last")
+    return [first_b, prev_b, next_b, last_b]
+

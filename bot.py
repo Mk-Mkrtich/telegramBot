@@ -47,7 +47,7 @@ def start(message):
 
 @bot.message_handler(commands=['bookslist'])
 def start(message):
-    passenger_handler.get_books_list(message)
+    passenger_handler.get_books_list(message, 'first')
 
 
 @bot.callback_query_handler(func=lambda callback: True)
@@ -84,26 +84,27 @@ def callback(callback):
     elif data == "priceData":
         driver_handler.set_price(callback.message, fullData[1])
         role = "none"
-    elif data == "rides":
+    elif data == "ridesForPassenger":
         passenger_handler.handle_ride_find(callback.message, fullData[1])
-    elif data == "showRide":
-        passenger_handler.show_ride(callback.message, fullData[1])
-    elif data == "showRideDriver":
-        driver_handler.show_ride(callback.message, fullData[1])
-    elif data == "bookRide":
-        passenger_handler.book_ride(callback.message, fullData[1], fullData[2])
-    elif data == "ridesList":
+    elif data == "showRideForPassenger":
+        passenger_handler.show_ride(callback.message, fullData[1], fullData[2])
+
+
+    elif data == "ridesForDriver":
         driver_handler.get_ride_list(callback.message, fullData[1])
+    elif data == "showRideForDriver":
+        driver_handler.show_ride(callback.message, fullData[1])
     elif data == "cancelRide":
         driver_handler.cancel_ride(callback.message, fullData[1])
+
+
+    elif data == "bookRide":
+        passenger_handler.book_ride(callback.message, fullData[1], fullData[2])
     elif data == "booksList":
-        passenger_handler.get_books_list(callback.message)
+        passenger_handler.get_books_list(callback.message, fullData[1])
     elif data == "showBook":
         passenger_handler.show_book(callback.message, fullData[1])
     elif data == "cancelBook":
         passenger_handler.cancel_book(callback.message, fullData[1])
-
-    print(role, end="*****************\n\n")
-
 
 bot.polling(none_stop=True)

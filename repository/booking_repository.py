@@ -47,8 +47,8 @@ class BookingRepository:
                                                     f'{ride_data['from_city']} to {ride_data['to_city']}, '
                                                     f'now you can contact with @{username}.')
 
-    def get_books_list(self, user_id):
-        books = self.bookings.get_books_by_user(user_id)
+    def get_books_list(self, user_id, action):
+        books = self.bookings.get_books_by_user(user_id, action)
         markup = types.InlineKeyboardMarkup()
 
         if len(books) == 0:
@@ -63,7 +63,7 @@ class BookingRepository:
             btn = types.InlineKeyboardButton(ride_button_text, callback_data="showBook_" + str(book['id']))
             markup.add(btn)
 
-        markup.row(*generate(len(books), 'passenger'))
+        markup.row(*generate('booksList'))
 
         return {"markup": markup, "rides_text": rides_text}
 
@@ -75,14 +75,17 @@ class BookingRepository:
                       f" 🚙 {book['car_color']} {book['car_mark']} "
                       f"{str(book['car_number']).upper().replace(" ", "")} ")
         btn = types.InlineKeyboardButton('Cancel the book', callback_data="cancelBook_" + str(book['id']))
-        back = types.InlineKeyboardButton("Back to list", callback_data="booksList")
+        back = types.InlineKeyboardButton("Back to list", callback_data="booksList_first")
         markup.add(btn, back)
         return {"markup": markup, "rides_text": rides_text}
 
     def cancel_book(self, book_id):
         book = self.bookings.get_book(book_id)
         ride_id = book['ride_id']
-        self.ride.update(ride_id, (int(book['free_places']) + int(book['booked_places'])))
+        places = int(book['free_places']) + int(book['booked_places'])
+        if places > book['places']:
+            places = book['places']
+        self.ride.update(ride_id, places)
 
         self.bot.send_message(book['user_id'], (f'Hi {book['user_name']}, one of Users is cancel the book, now you '
                                                 f'have {book['booked_places']} more free places'))

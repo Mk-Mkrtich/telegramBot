@@ -72,15 +72,16 @@ class DriverController(BaseController):
             self.ride = RideModel()
 
     def get_ride_list(self, message, action):
-        data = self.ride_repo.ride_list(message.chat.id)
+        data = self.ride_repo.ride_list(message.chat.id, action)
         ids.add(message.message_id)
         self.clear_history(message.chat.id)
         ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
 
     def show_ride(self, message, id):
         ids.add(message.message_id)
-        data = self.ride_repo.show_ride(message, id, "driver")
+        data = self.ride_repo.show_ride(id, "driver")
         ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
 
     def cancel_ride(self, message, ride_id):
         self.ride_repo.cancel_ride_by_id(message, self.bot, ride_id)
+        self.get_ride_list(message, "first")

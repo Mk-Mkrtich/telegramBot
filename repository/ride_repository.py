@@ -10,7 +10,7 @@ class RideRepository:
         self.ride = RideModel()
         self.bot = bot
 
-    def show_ride(self, message, id, role):
+    def show_ride(self, id, role, suggest=None):
         ride = self.ride.find_matching_ride(id)
         markup = types.InlineKeyboardMarkup()
 
@@ -26,7 +26,7 @@ class RideRepository:
                       f"{str(ride['car_number']).upper().replace(" ", "")}\n\n"
                       )
 
-        if ride['user_id'] != message.chat.id:
+        if role == "passenger":
             rides_text += f"Select places count for BOOKING"
             places_count = []
             for i in range(1, int(ride['free_places']) + 1):
@@ -35,49 +35,53 @@ class RideRepository:
                 places_count.append(btn)
 
             markup.row(*places_count)
-        if role == "passenger":
-            back = types.InlineKeyboardButton("Back to list", callback_data="rides_first")
+            back = types.InlineKeyboardButton("Back to list", callback_data="ridesForPassenger_first")
         else:
-            back = types.InlineKeyboardButton("Back to list", callback_data="ridesList_first")
+            back = types.InlineKeyboardButton("Back to list", callback_data="ridesForDriver_first")
             cancel = types.InlineKeyboardButton("Cancel the ride", callback_data="cancelRide_" + str(id))
             markup.add(cancel)
-
-        markup.add(back)
+        if suggest is None:
+            markup.add(back)
         return {"markup": markup, "rides_text": rides_text}
 
-    def find_ride(self, data):
+    def find_ride(self, data, action, paginate=None, suggest=None):
         find_data = [data['from_city'], data['to_city'], data['date'], data['free_places']]
-        if data['limit']:
-            find_data += [data['limit']]
-        rides = self.ride.get_matching_rides(*find_data)
+
+        rides = self.ride.get_matching_rides(*find_data, data['id'], action)
         markup = types.InlineKeyboardMarkup()
 
         if len(rides) == 0:
             return {"markup": markup, "rides_text": "No rides found"}
 
-        rides_text = ("OK, this is a list of rides. \n\n"
-                      f"From - {data['from_city']}\n"
-                      f"To - {data['to_city']}\n"
-                      f"Date - {data['date']}\n"
-                      f"Free places - {data['free_places']}")
+        if suggest is None:
+            rides_text = "OK, this is a list of rides. \n\n"
 
+        else:
+            rides_text = "We suggest you another rides. \n\n"
+
+        rides_text += (f"From - {data['from_city']}\n"
+                       f"To - {data['to_city']}\n"
+                       f"Date - {data['date']}\n"
+                       f"Free places - {data['free_places']}")
         for ride in rides:
-            if ride['user_id'] == data['id']:
-                continue
-
+            callback_params = "showRideForPassenger_" + str(ride['id'])
+            if suggest is not None:
+                callback_params += "_suggest"
+            else:
+                callback_params += "_"
             ride_button_text = (f"Price - {str(ride['price'])}֏ "
                                 f" 🚙 {ride['car_color']} {ride['car_mark']} "
                                 f"{str(ride['car_number']).upper().replace(" ", "")} ")
-            btn = types.InlineKeyboardButton(ride_button_text, callback_data="showRide_" + str(ride['id'])
-                                                                             + "_" + data['role'])
+            btn = types.InlineKeyboardButton(ride_button_text, callback_data=callback_params)
             markup.add(btn)
 
-        markup.row(*generate(len(rides), data['role']))
+        if paginate is None:
+            markup.row(*generate(data['type']))
 
         return {"markup": markup, "rides_text": rides_text}
 
-    def ride_list(self, user_id):
-        rides = self.ride.get_ride_list_by_user_id(user_id)
+    def ride_list(self, user_id, action):
+        rides = self.ride.get_ride_list_by_user_id(user_id, action)
         markup = types.InlineKeyboardMarkup()
 
         if len(rides) == 0:
@@ -86,16 +90,14 @@ class RideRepository:
         rides_text = "OK, this is a list of rides. \n\n"
 
         for ride in rides:
-            ride_button_text = "🔴 "
-
-            ride_button_text += (f"Price - {str(ride['price'])}֏ "
-                                 f" 🚙 {ride['car_color']} {ride['car_mark']} "
-                                 f"{str(ride['car_number']).upper().replace(" ", "")} ")
-            btn = types.InlineKeyboardButton(ride_button_text, callback_data="showRideDriver_" + str(ride['id'])
+            ride_button_text = (f"Price - {str(ride['price'])}֏ "
+                                f" 🚙 {ride['car_color']} {ride['car_mark']} "
+                                f"{str(ride['car_number']).upper().replace(" ", "")} ")
+            btn = types.InlineKeyboardButton(ride_button_text, callback_data="showRideForDriver_" + str(ride['id'])
                                                                              + "_" + "driver")
             markup.add(btn)
 
-        markup.row(*generate(len(rides), 'driver'))
+        markup.row(*generate('ridesForDriver'))
 
         return {"markup": markup, "rides_text": rides_text}
 
@@ -105,10 +107,10 @@ class RideRepository:
             self.ride.delete_ride_by_id(ride_id)
         else:
             for ride in rides:
-                print(ride)
                 data = self.find_ride({"from_city": ride['from_city'], "to_city": ride['to_city'],
                                        "date": ride['ride_date'], "free_places": ride['free_places'],
-                                       "id": ride['user_id'], "role": "passenger", "limit": 5})
+                                       "id": ride['user_id'], "type": "ridesForPassenger"}, "first", "no_need",
+                                      'suggest')
                 if data is None:
 
                     bot.send_message(ride['passenger_id'],
