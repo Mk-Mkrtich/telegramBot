@@ -61,11 +61,7 @@ def callback(callback):
     fullData = callback.data.split('_')
     print(fullData)
     data = fullData[0]
-    if data == 'help':
-        ids.add(bot.send_message(callback.message.chat.id, "You can find a ride on the way you need, "
-                                                   "also you can share your rides with other users.").id)
-
-    elif data == "fromCity" and fullData[1] in cities:
+    if data == "fromCity" and fullData[1] in cities:
         if role == "driver":
             driver_handler.handle_from_city_selection(callback.message, fullData[1])
         else:
