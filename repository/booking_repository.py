@@ -3,7 +3,7 @@ from telebot import types
 from components.paginate_buttons_component import generate
 from db.models.books_model import BooksModel
 from db.models.ride_model import RideModel
-from configs.storage import ids
+from configs.storage import ids, start, finish, date, time, passenger, price, car, to_back, to_cancel
 
 
 class BookingRepository:
@@ -34,16 +34,18 @@ class BookingRepository:
                                                f"@{username} you booked {places} Place/s on ride by "
                                                f"{ride_data['user_name']}, now you can contact with "
                                                f"@{ride_data['user_name']}:\n\n"
-                                               f"From - {ride_data['from_city']}\n"
-                                               f"To - {ride_data['to_city']}\n"
-                                               f"Date - {ride_data['ride_date']}\n"
-                                               f"Places - {ride_data['free_places']} / {ride_data['places']}\n"
-                                               f"Price - {ride_data['price']}֏\n"
-                                               f"🚙 {ride_data['car_color']} {ride_data['car_mark']} "
+                                               f"{start} {ride_data['from_city']} "
+                                               f"{finish} {ride_data['to_city']}\n"
+                                               f"{date} {ride_data['ride_date']} "
+                                               f"{time} {ride_data['ride_time']}\n"
+                                               f"{passenger} {ride_data['free_places']} / {ride_data['places']} "
+                                               f"{price} {ride_data['price']}\n"
+                                               f"{car} {ride_data['car_color']} {ride_data['car_mark']} "
                                                f"{str(ride_data['car_number']).upper().replace(" ", "")}")
 
         self.bot.send_message(ride_data['user_id'], f'Hi {ride_data['user_name']}, User {username} booked '
-                                                    f'{places} Place/s on Your ride at {ride_data['ride_date']} From '
+                                                    f'{places} Place/s on Your ride at {ride_data['ride_date']} '
+                                                    f'{ride_data['ride_time']} From '
                                                     f'{ride_data['from_city']} to {ride_data['to_city']}, '
                                                     f'now you can contact with @{username}.')
 
@@ -57,9 +59,9 @@ class BookingRepository:
         rides_text = "OK, this is a list of books. \n\n"
 
         for book in books:
-            ride_button_text = (f"Price - {str(book['price'])}֏ "
-                                f" 🚙 {book['car_color']} {book['car_mark']} "
-                                f"{str(book['car_number']).upper().replace(" ", "")} ")
+            ride_button_text = (f"{price} {str(book['price'])} "
+                                f"{time} {str(book['ride_time'])} "
+                                f"{car} {book['car_color']} {book['car_mark']} ")
             btn = types.InlineKeyboardButton(ride_button_text, callback_data="showBook_" + str(book['id']))
             markup.add(btn)
 
@@ -72,10 +74,16 @@ class BookingRepository:
         markup = types.InlineKeyboardMarkup()
 
         rides_text = (f"You booked {str(book['booked_places'])} place/s on this ride. \n\n"
-                      f" 🚙 {book['car_color']} {book['car_mark']} "
-                      f"{str(book['car_number']).upper().replace(" ", "")} ")
-        btn = types.InlineKeyboardButton('Cancel the book', callback_data="cancelBook_" + str(book['id']))
-        back = types.InlineKeyboardButton("Back to list", callback_data="booksList_first")
+                      f"{start} {book['from_city']} "
+                      f"{finish} {book['to_city']}\n"
+                      f"{price} {book['price']}\n"
+                      f"{date} {book['ride_date']} "
+                      f"{time} {book['ride_time']}\n"
+                      f"{car} {book['car_color']} {book['car_mark']} "
+                      f"{str(book['car_number']).upper().replace(" ", "")}\n"
+                      f"{passenger} @{book['user_name']}")
+        btn = types.InlineKeyboardButton(f'{to_cancel}', callback_data="cancelBook_" + str(book['id']))
+        back = types.InlineKeyboardButton(f"{to_back}", callback_data="booksList_first")
         markup.add(btn, back)
         return {"markup": markup, "rides_text": rides_text}
 

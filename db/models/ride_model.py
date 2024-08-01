@@ -8,6 +8,7 @@ class RideModel(BaseModel):
         self.from_city = ''
         self.to_city = ''
         self.date = ''
+        self.ride_time = ''
         self.places = ''
         self.free_places = ''
         self.price = ''
@@ -142,11 +143,11 @@ class RideModel(BaseModel):
     def save_to_db(self):
         self.cur.execute(
             """
-            INSERT INTO rides (from_city, to_city, ride_date, places, free_places, 
+            INSERT INTO rides (from_city, to_city, ride_date, ride_time,  places, free_places, 
             price, car_mark, car_number, car_color, user_name, user_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (self.from_city, self.to_city, self.date, self.places, self.free_places,
+            (self.from_city, self.to_city, self.date, self.ride_time, self.places, self.free_places,
              self.price, self.car_mark, self.car_number, self.car_color, self.user_name, self.user_id)
         )
         self.conn.commit()

@@ -2,7 +2,7 @@ from db.models.ride_model import RideModel
 from controllers.base_controller import BaseController
 import re
 from components.price_buttons_component import generate_price_buttons
-from configs.storage import ids
+from configs.storage import ids, start, finish, date, time, passenger, price, car, to_back
 
 class DriverController(BaseController):
     def __init__(self, bot):
@@ -61,12 +61,13 @@ class DriverController(BaseController):
             self.end_message_id = message.message_id
             self.clear_history(message.chat.id)
             self.bot.send_message(message.chat.id, f"Ok, we registered your ride:\n\n"
-                                                   f"From - {self.ride.from_city}\n"
-                                                   f"To - {self.ride.to_city}\n"
-                                                   f"Date - {self.ride.date}\n"
-                                                   f"Places - {self.ride.free_places} / {self.ride.places}\n"
-                                                   f"Price - {self.ride.price}֏\n"
-                                                   f"🚙 {self.ride.car_color} {self.ride.car_mark} "
+                                                   f"{start} {self.ride.from_city} "
+                                                   f"{finish} {self.ride.to_city}\n"
+                                                   f"{date} {self.ride.date} "
+                                                   f"{time} {self.ride.ride_time}\n"
+                                                   f"{passenger} {self.ride.free_places} / {self.ride.places} "
+                                                   f"{price} {self.ride.price}֏\n"
+                                                   f"{car} {self.ride.car_color} {self.ride.car_mark} "
                                                    f"{str(self.ride.car_number).upper().replace(" ", "")}")
             self.ride.save_to_db()
             self.ride = RideModel()

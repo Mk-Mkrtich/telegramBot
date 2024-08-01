@@ -7,6 +7,7 @@ def create_rides_table():
             from_city VARCHAR(255) NOT NULL,
             to_city VARCHAR(255) NOT NULL,
             ride_date DATE NOT NULL,
+            ride_time VARCHAR(255) NOT NULL,
             places INT NOT NULL,
             free_places INT NOT NULL,
             price DECIMAL(10, 2) NOT NULL,

@@ -1,3 +1,4 @@
+from components.places_buttons_component import generate
 from repository.booking_repository import BookingRepository
 from repository.ride_repository import RideRepository
 from db.models.ride_model import RideModel
@@ -5,7 +6,7 @@ from components.calendar_component import CalendarComponent
 from configs.cities import cities
 from components.city_component import generate_city_buttons
 import datetime
-from configs.storage import ids
+from configs.storage import ids, passenger
 
 
 class BaseController:
@@ -53,17 +54,25 @@ class BaseController:
             ids.add(self.bot.send_message(message.chat.id, f"Selected city: {city}").id)
             ids.add(self.bot.send_message(message.chat.id, "Please select a date:", reply_markup=markup).id)
 
-    def handle_calendar(self, callback):
+    def handle_calendar(self, callback, role):
         if self.check_ignore("handle_calendar_action"):
-            data = self.calendar.handle_keyboard(self.bot, callback, self.ride)
+            data = self.calendar.handle_keyboard(self.bot, callback, self.ride, role)
             ids.add(callback.message.message_id)
             if data[0] == "edit":
                 self.bot.edit_message_text("Please select a date:", callback.message.chat.id, callback.message.message_id,
                                            reply_markup=data[1])
             else:
                 self.append_ignore("handle_calendar_action")
-                ids.add(self.bot.send_message(callback.message.chat.id, "Please write the number of free places 👤.",
+                ids.add(self.bot.send_message(callback.message.chat.id, data[2],
                                           reply_markup=data[1]).id)
+
+    def handle_time(self, callback, time):
+        if self.check_ignore("handle_time"):
+            self.ride.ride_time = time
+            ids.add(callback.message.message_id)
+            self.append_ignore("handle_time")
+            ids.add(self.bot.send_message(callback.message.chat.id, f"Please write the number of free places {passenger}.",
+                                      reply_markup=generate()).id)
 
     def check_ignore(self, action):
         if action in self.ignore_action:

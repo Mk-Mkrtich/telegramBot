@@ -1,7 +1,9 @@
 import calendar
 from telebot import types
 from datetime import datetime
-from configs.storage import ids
+
+from components.time_component import generate_time_buttons
+from configs.storage import ids, can_not, time, passenger
 from components.places_buttons_component import generate
 
 class CalendarComponent:
@@ -35,14 +37,14 @@ class CalendarComponent:
                             (self.year == current_date.year and self.month < current_date.month) or \
                             (self.year == current_date.year and self.month == current_date.month
                              and day < current_date.day):
-                        row.append(types.InlineKeyboardButton(f'🚫{day}', callback_data='ignore'))
+                        row.append(types.InlineKeyboardButton(f'{can_not} {day}', callback_data='ignore'))
                     else:
                         row.append(types.InlineKeyboardButton(str(day), callback_data=f'day_{self.year}_{self.month}_{day}'))
             keyboard.row(*row)
 
         return keyboard
 
-    def handle_keyboard(self, bot, callback, ride):
+    def handle_keyboard(self, bot, callback, ride, role):
         data = callback.data.split('_')
         if data[0] == 'prev' and data[1] == 'month':
             year, month = int(data[2]), int(data[3])
@@ -69,6 +71,12 @@ class CalendarComponent:
             year, month, day = int(data[1]), int(data[2]), int(data[3])
             ride.date = f"{year}-{month:02}-{day:02}"
             ids.add(bot.send_message(callback.message.chat.id, f"Selected date: {ride.date}").id)
+            if role == 'driver':
+                next_step_data = generate_time_buttons()
+                next_step_text = f"Please write the time {time}."
+            else:
+                next_step_data = generate()
+                next_step_text = f"Please write the number of free places {passenger}."
 
-            return ['send', generate()]
+            return ['send', next_step_data, next_step_text]
 

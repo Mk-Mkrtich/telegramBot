@@ -2,6 +2,7 @@ from telebot import types
 
 from components.paginate_buttons_component import generate
 from db.models.ride_model import RideModel
+from configs.storage import start, finish, date, time, passenger, price, car, to_back, to_cancel
 
 
 class RideRepository:
@@ -17,12 +18,13 @@ class RideRepository:
         if ride is None:
             return {"markup": markup, "rides_text": "Ride not found."}
 
-        rides_text = (f"From - {ride['from_city']}\n"
-                      f"To - {ride['to_city']}\n"
-                      f"Date - {ride['ride_date']}\n"
-                      f"Places - {ride['free_places']} / {ride['places']}\n"
-                      f"Price - {ride['price']}֏\n"
-                      f"🚙 - {ride['car_color']} {ride['car_mark']} "
+        rides_text = (f"{start} {ride['from_city']} "
+                      f"{finish} {ride['to_city']}\n"
+                      f"{date} {ride['ride_date']} "
+                      f"{time} {ride['ride_time']}\n"
+                      f"{passenger} {ride['free_places']} / {ride['places']} "
+                      f"{price} {ride['price']}֏\n"
+                      f"{car} {ride['car_color']} {ride['car_mark']} "
                       f"{str(ride['car_number']).upper().replace(" ", "")}\n\n"
                       )
 
@@ -30,15 +32,15 @@ class RideRepository:
             rides_text += f"Select places count for BOOKING"
             places_count = []
             for i in range(1, int(ride['free_places']) + 1):
-                btn = types.InlineKeyboardButton(str(i),
+                btn = types.InlineKeyboardButton(f"{passenger}" + str(i),
                                                  callback_data="bookRide_" + str(ride['id']) + "_" + str(i))
                 places_count.append(btn)
 
             markup.row(*places_count)
-            back = types.InlineKeyboardButton("Back to list", callback_data="ridesForPassenger_first")
+            back = types.InlineKeyboardButton(f"{to_back}", callback_data="ridesForPassenger_first")
         else:
-            back = types.InlineKeyboardButton("Back to list", callback_data="ridesForDriver_first")
-            cancel = types.InlineKeyboardButton("Cancel the ride", callback_data="cancelRide_" + str(id))
+            back = types.InlineKeyboardButton(f"{to_back}", callback_data="ridesForDriver_first")
+            cancel = types.InlineKeyboardButton(f"{to_cancel}", callback_data="cancelRide_" + str(id))
             markup.add(cancel)
         if suggest is None:
             markup.add(back)
@@ -59,18 +61,19 @@ class RideRepository:
         else:
             rides_text = "We suggest you another rides. \n\n"
 
-        rides_text += (f"From - {data['from_city']}\n"
-                       f"To - {data['to_city']}\n"
-                       f"Date - {data['date']}\n"
-                       f"Free places - {data['free_places']}")
+        rides_text += (f"{start} {data['from_city']} "
+                       f"{finish} {data['to_city']}\n"
+                       f"{date} {data['date']}\n"
+                       f"{passenger} {data['free_places']}")
         for ride in rides:
             callback_params = "showRideForPassenger_" + str(ride['id'])
             if suggest is not None:
                 callback_params += "_suggest"
             else:
                 callback_params += "_"
-            ride_button_text = (f"Price - {str(ride['price'])}֏ "
-                                f" 🚙 {ride['car_color']} {ride['car_mark']} "
+            ride_button_text = (f"{price} {str(ride['price'])} "
+                                f"{time} {str(ride['ride_time'])} "
+                                f"{car} {ride['car_color']} {ride['car_mark']} "
                                 f"{str(ride['car_number']).upper().replace(" ", "")} ")
             btn = types.InlineKeyboardButton(ride_button_text, callback_data=callback_params)
             markup.add(btn)
@@ -78,7 +81,7 @@ class RideRepository:
         if paginate is None:
             markup.row(*generate(data['type']))
 
-        return {"markup": markup, "rides_text": rides_text}
+        return {"markup": markup, "rides_text": rides_text, "count": len(rides)}
 
     def ride_list(self, user_id, action):
         rides = self.ride.get_ride_list_by_user_id(user_id, action)
@@ -90,9 +93,8 @@ class RideRepository:
         rides_text = "OK, this is a list of rides. \n\n"
 
         for ride in rides:
-            ride_button_text = (f"Price - {str(ride['price'])}֏ "
-                                f" 🚙 {ride['car_color']} {ride['car_mark']} "
-                                f"{str(ride['car_number']).upper().replace(" ", "")} ")
+            ride_button_text = (f"{price} {str(ride['price'])} {date} {str(ride['ride_date'])} {time} {str(ride['ride_time'])}"
+                                f" {car} {str(ride['car_number']).upper().replace(" ", "")} ")
             btn = types.InlineKeyboardButton(ride_button_text, callback_data="showRideForDriver_" + str(ride['id'])
                                                                              + "_" + "driver")
             markup.add(btn)
@@ -111,7 +113,7 @@ class RideRepository:
                                        "date": ride['ride_date'], "free_places": ride['free_places'],
                                        "id": ride['user_id'], "type": "ridesForPassenger"}, "first", "no_need",
                                       'suggest')
-                if data is None:
+                if data['count'] == 0:
 
                     bot.send_message(ride['passenger_id'],
                                      text=(

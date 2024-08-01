@@ -73,9 +73,11 @@ def callback(callback):
             passenger_handler.handle_to_city_selection(callback.message, fullData[1])
     elif data in ['prev', 'next', 'day']:
         if role == "driver":
-            driver_handler.handle_calendar(callback)
+            driver_handler.handle_calendar(callback, role)
         else:
-            passenger_handler.handle_calendar(callback)
+            passenger_handler.handle_calendar(callback, role)
+    elif data == "fideTime":
+        driver_handler.handle_time(callback, fullData[1])
     elif data == "passengersCount":
         if role == "driver":
             driver_handler.set_places(callback.message, fullData[1])
