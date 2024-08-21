@@ -37,7 +37,7 @@ class CalendarComponent:
                             (self.year == current_date.year and self.month < current_date.month) or \
                             (self.year == current_date.year and self.month == current_date.month
                              and day < current_date.day):
-                        row.append(types.InlineKeyboardButton(f'{can_not} {day}', callback_data='ignore'))
+                        row.append(types.InlineKeyboardButton(f'{can_not}{day}', callback_data='ignore'))
                     else:
                         row.append(types.InlineKeyboardButton(str(day), callback_data=f'day_{self.year}_{self.month}_{day}'))
             keyboard.row(*row)
@@ -72,7 +72,7 @@ class CalendarComponent:
             ride.date = f"{year}-{month:02}-{day:02}"
             ids.add(bot.send_message(callback.message.chat.id, f"Selected date: {ride.date}").id)
             if role == 'driver':
-                next_step_data = generate_time_buttons()
+                next_step_data = generate_time_buttons(ride.date)
                 next_step_text = f"Please write the time {time}."
             else:
                 next_step_data = generate()
