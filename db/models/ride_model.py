@@ -17,7 +17,7 @@ class RideModel(BaseModel):
         self.car_color = ''
         self.user_name = ''
         self.user_id = ''
-        self.table_name = "rides"
+        self.table_name = "rides_ride"
         self.page_size = 5
         self.paginator = Paginator(self.cur, self.table_name, self.page_size)
 
@@ -32,7 +32,7 @@ class RideModel(BaseModel):
             self.paginator.last_page()
 
         query = """
-             SELECT * FROM rides
+             SELECT * FROM rides_ride
             WHERE from_city LIKE %s AND to_city LIKE %s AND ride_date = %s AND free_places >= %s AND user_id NOT LIKE %s
             """
         params = [from_city, to_city, date, free_places, user_id]
@@ -56,7 +56,7 @@ class RideModel(BaseModel):
     def find_matching_ride(self, id):
         self.cur.execute(
             """
-            SELECT * FROM rides
+            SELECT * FROM rides_ride
             WHERE id = %s 
             """,
             id
@@ -67,7 +67,7 @@ class RideModel(BaseModel):
     def update(self, id, place):
         self.cur.execute(
             """
-            UPDATE rides
+            UPDATE rides_ride
             SET free_places = %s
             WHERE id = %s
             """,
@@ -76,7 +76,7 @@ class RideModel(BaseModel):
         self.conn.commit()
         self.cur.execute(
             """
-            SELECT * FROM rides
+            SELECT * FROM rides_ride
             WHERE id = %s
             """,
             id
@@ -95,7 +95,7 @@ class RideModel(BaseModel):
             self.paginator.last_page()
 
         query = """
-            SELECT * FROM rides
+            SELECT * FROM rides_ride
             WHERE user_id = %s
               """
         params = [user_id]
@@ -120,8 +120,8 @@ class RideModel(BaseModel):
     def get_ride_for_cancel(self, ride_id):
         self.cur.execute(
             """
-            SELECT * FROM rides
-            join books on (books.ride_id = rides.id)
+            SELECT * FROM rides_ride
+            join books_book on (books.ride_id = rides.id)
             WHERE rides.id = %s
             """,
             ride_id
@@ -132,7 +132,7 @@ class RideModel(BaseModel):
     def delete_ride_by_id(self, ride_id):
         self.cur.execute(
             """
-            DELETE FROM rides
+            DELETE FROM rides_ride
             WHERE id = %s
             """,
             ride_id
@@ -143,7 +143,7 @@ class RideModel(BaseModel):
     def save_to_db(self):
         self.cur.execute(
             """
-            INSERT INTO rides (from_city, to_city, ride_date, ride_time,  places, free_places, 
+            INSERT INTO rides_ride (from_city, to_city, ride_date, ride_time,  places, free_places, 
             price, car_mark, car_number, car_color, user_name, user_id)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,

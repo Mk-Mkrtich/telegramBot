@@ -10,14 +10,14 @@ class BooksModel(BaseModel, Paginator):
         self.booked_places = ''
         self.passenger_name = ''
         self.passenger_id = ''
-        self.table_name = "books"
+        self.table_name = "books_book"
         self.page_size = 5
         self.paginator = Paginator(self.cur, self.table_name, self.page_size)
 
     def save_to_db(self):
         self.cur.execute(
             """
-            INSERT INTO books (ride_id, booked_places, passenger_name, passenger_id)
+            INSERT INTO books_book (ride_id, booked_places, passenger_name, passenger_id)
             VALUES (%s, %s, %s, %s)
             """,
             (self.ride_id, self.booked_places, self.passenger_name, self.passenger_id)
@@ -27,8 +27,8 @@ class BooksModel(BaseModel, Paginator):
     def get_book(self, book_id):
         self.cur.execute(
             """
-            SELECT * FROM books
-            join rides on (books.ride_id = rides.id)
+            SELECT * FROM books_book
+            join rides_ride on (books.ride_id = rides.id)
             WHERE books.id = %s
             """,
             book_id
@@ -47,8 +47,8 @@ class BooksModel(BaseModel, Paginator):
             self.paginator.last_page()
 
         query = """
-            SELECT * FROM books
-            join rides on (books.ride_id = rides.id)
+            SELECT * FROM books_book
+            join rides_ride on (books.ride_id = rides.id)
             WHERE passenger_id = %s
         """
         params = [user_id]
@@ -72,7 +72,7 @@ class BooksModel(BaseModel, Paginator):
     def delete_book(self, book_id):
         self.cur.execute(
             """
-            DELETE FROM books
+            DELETE FROM books_book
             WHERE id = %s
             """,
             book_id
@@ -83,7 +83,7 @@ class BooksModel(BaseModel, Paginator):
     def delete_bulk_books(self, book_ids):
         self.cur.execute(
             """
-            DELETE FROM books
+            DELETE FROM books_book
             WHERE IN id = %s
             """,
             book_ids
