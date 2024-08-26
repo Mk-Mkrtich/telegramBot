@@ -62,12 +62,12 @@ def callback(callback):
     fullData = callback.data.split('_')
     print(fullData)
     data = fullData[0]
-    if data == "fromCity" and fullData[1] in cities:
+    if data == "fromCity" and fullData[1] in driver_handler.cities:
         if role == "driver":
             driver_handler.handle_from_city_selection(callback.message, fullData[1])
         else:
             passenger_handler.handle_from_city_selection(callback.message, fullData[1])
-    elif data == "toCity" and fullData[1] in cities:
+    elif data == "toCity" and fullData[1] in driver_handler.cities:
         if role == "driver":
             driver_handler.handle_to_city_selection(callback.message, fullData[1])
         else:

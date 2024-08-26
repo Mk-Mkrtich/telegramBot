@@ -3,7 +3,7 @@ from repository.booking_repository import BookingRepository
 from repository.ride_repository import RideRepository
 from db.models.ride_model import RideModel
 from components.calendar_component import CalendarComponent
-from configs.cities import cities
+from db.models.cities_model import CitiesModel
 from components.city_component import generate_city_buttons
 import datetime
 from configs.storage import ids, passenger
@@ -20,13 +20,15 @@ class BaseController:
         self.ignore_action = []
         self.start_message_id = 0
         self.end_message_id = 0
+        self.cities = None
 
     def start(self, message):
         self.trash_ignore()
         if self.check_ignore("start_action"):
             self.append_ignore("start_action")
             ids.add(message.message_id)
-            markup = generate_city_buttons(cities, "fromCity")
+            self.cities = CitiesModel().get_cities() or ['Erevan', 'Gyumri']
+            markup = generate_city_buttons(self.cities, "fromCity")
             ids.add(self.bot.send_message(message.chat.id, "Cool, please select From where", reply_markup=markup).id)
 
     def handle_from_city_selection(self, message, city):
@@ -35,7 +37,7 @@ class BaseController:
             self.append_ignore("handle_from_city_selection_action")
             ids.add(message.message_id)
             self.ride.from_city = city
-            cities_clone = cities.copy()
+            cities_clone = self.cities.copy()
             cities_clone.remove(city)
             markup = generate_city_buttons(cities_clone, "toCity")
             ids.add(self.bot.send_message(message.chat.id, f"Selected city: {city}").id)
