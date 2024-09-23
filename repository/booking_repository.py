@@ -3,6 +3,7 @@ from telebot import types
 from components.paginate_buttons_component import generate
 from db.models.books_model import BooksModel
 from db.models.ride_model import RideModel
+from repository.user_repository import UserRepository
 from configs.storage import ids, start, finish, date, time, passenger, price, car, to_back, to_cancel
 
 
@@ -12,11 +13,10 @@ class BookingRepository:
         self.bookings = BooksModel()
         self.ride = RideModel()
         self.bot = bot
+        self.user_repository = UserRepository()
 
     def book_ride(self, message, ride_id, places):
         username = message.chat.username
-        if not username:
-            return ids.add(self.bot.send_message(message.chat.id, "Please add userName to your account").id)
         self.bookings.ride_id = ride_id
         self.bookings.booked_places = places
         self.bookings.passenger_name = username
@@ -24,16 +24,18 @@ class BookingRepository:
 
         ride = self.ride.find_matching_ride(ride_id)
         if ride['user_id'] == message.chat.id:
-            return self.bot.send_message(message.chat.id, "You cent book your ride")
+            return self.bot.send_message(message.chat.id, "Դուք չեք կարող ամրագրել ձեր ուղևորությունը")
         if int(ride['free_places']) == 0:
-            return self.bot.send_message(message.chat.id, "The car already fully")
+            return self.bot.send_message(message.chat.id, "Բոլոր տեղերն արդեն ամրագրված են")
         self.bookings.save_to_db()
         ride_data = self.ride.update(ride_id, (int(ride['free_places']) - int(places)))
 
-        self.bot.send_message(message.chat.id, f"Ok, we registered your Book:\n\n"
-                                               f"@{username} you booked {places} Place/s on ride by "
-                                               f"{ride_data['user_name']}, now you can contact with "
-                                               f"@{ride_data['user_name']}:\n\n"
+        self.bot.send_message(message.chat.id, f"Մենք գրանցում ենք ձեր ամրագրումը.\n\n"
+                                               f"@{username} Դուք ամրագրել եք {places} տեղ "
+                                               f"{ride_data['user_name']}, այժմ կարող եք կապ հաստատել"
+                                               f"@{ride_data['user_name']}-ի հետ:\n\n"
+                                               f"ID: {ride_data['user_id']} սա վարորդի ID-ն է, այն ձեզ անհրաժեշտ "
+                                               f"կլինի բողոքների համար:\n\n"
                                                f"{start} {ride_data['from_city']} "
                                                f"{finish} {ride_data['to_city']}\n"
                                                f"{date} {ride_data['ride_date']} "
@@ -41,22 +43,34 @@ class BookingRepository:
                                                f"{passenger} {ride_data['free_places']} / {ride_data['places']} "
                                                f"{price} {ride_data['price']}\n"
                                                f"{car} {ride_data['car_color']} {ride_data['car_mark']} "
-                                               f"{str(ride_data['car_number']).upper().replace(" ", "")}")
-
-        self.bot.send_message(ride_data['user_id'], f'Hi {ride_data['user_name']}, User {username} booked '
-                                                    f'{places} Place/s on Your ride at {ride_data['ride_date']} '
-                                                    f'{ride_data['ride_time']} From '
-                                                    f'{ride_data['from_city']} to {ride_data['to_city']}, '
-                                                    f'now you can contact with @{username}.')
+                                               f"{str(ride_data['car_number']).upper().replace(" ", "")}"
+                                               f"Խնդրում եմ, հիշեք, որ գործ ունեք իրական մարդկանց հետ, "
+                                               f"խնդրում եմ մի ուշացեք, չեղարկեք ուղևորությունից 2 ժամ առաջ։ "
+                                               f"Եթե նկատում եք ուղևորների անընդունելի վարքագիծը,"
+                                               f" տեղեկացրեք մեզ:"
+                                               f"Գրեք հաղորդագրություն բոտին՝ նշելով ուղևորի օգտանունը "
+                                               f"'Telegram'- ում և բողոքի պատճառ"
+                              )
+        user = self.user_repository.check_user_status(message.chat.id)
+        self.bot.send_message(ride_data['user_id'], f'Ողջույն {ride_data['user_name']}, {username}-ը ամրագրեց '
+                                                    f'{places} տեղ {ride_data['ride_date']} '
+                                                    f'{ride_data['ride_time']}-ին \n'
+                                                    f'{ride_data['from_city']}-ից {ride_data['to_city']}, '
+                                                    f'այժմ կարող եք կապ հաստատել @{username} -ի հետ.'
+                                                    f"ID: {message.chat.id} սա ուղևորի ID-ն է, այն ձեզ անհրաժեշտ "
+                                                    f"կլինի բողոքների համար:\n\n"
+                                                    f"{user['text']} Ուղևորի վարկանիշ \n\n"
+                              )
 
     def get_books_list(self, user_id, action):
         books = self.bookings.get_books_by_user(user_id, action)
         markup = types.InlineKeyboardMarkup()
 
         if len(books) == 0:
-            return {"markup": markup, "rides_text": "You Haven't Books yet."}
+            return {"markup": markup,
+                    "rides_text": "Դուք դեռ չեք ամրագրել ուղևորություններ: \n Ամրագրման համար կարող եք սեղմել այստեղ"}
 
-        rides_text = "OK, this is a list of books. \n\n"
+        rides_text = "Սա Ձեր ամրագրումների ցանկն է: \n\n"
 
         for book in books:
             ride_button_text = (f"{price} {str(book['price'])} "
@@ -73,7 +87,7 @@ class BookingRepository:
         book = self.bookings.get_book(book_id)
         markup = types.InlineKeyboardMarkup()
 
-        rides_text = (f"You booked {str(book['booked_places'])} place/s on this ride. \n\n"
+        rides_text = (f"Դուք ամրագրել եք {str(book['booked_places'])} տեղ \n\n"
                       f"{start} {book['from_city']} "
                       f"{finish} {book['to_city']}\n"
                       f"{price} {book['price']}\n"
@@ -81,7 +95,9 @@ class BookingRepository:
                       f"{time} {book['ride_time']}\n"
                       f"{car} {book['car_color']} {book['car_mark']} "
                       f"{str(book['car_number']).upper().replace(" ", "")}\n"
-                      f"{passenger} @{book['user_name']}")
+                      f"{passenger} @{book['user_name']}"
+                      f"ID: {book['user_id']}"
+                      )
         btn = types.InlineKeyboardButton(f'{to_cancel}', callback_data="cancelBook_" + str(book['id']))
         back = types.InlineKeyboardButton(f"{to_back}", callback_data="booksList_first")
         markup.add(btn, back)
@@ -95,10 +111,11 @@ class BookingRepository:
             places = book['places']
         self.ride.update(ride_id, places)
 
-        self.bot.send_message(book['user_id'], (f'Hi {book['user_name']}, one of Users is cancel the book, now you '
-                                                f'have {book['booked_places']} more free places'))
+        self.bot.send_message(book['user_id'], (
+            f'Ողջույն {book['user_name']}, ուղևորներից մեկը չեղարկել է ամրագրումը, այժմ դուք ունեք ևս '
+            f'{book['booked_places']} ազատ տեղ'))
         self.bookings.delete_book(book_id)
 
-        rides_text = "You cancel the book"
+        rides_text = "Դուք չեղարկել եք ամրագրումը"
 
         return {"rides_text": rides_text}

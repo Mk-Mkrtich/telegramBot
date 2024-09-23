@@ -2,6 +2,7 @@ from telebot import types
 
 from components.paginate_buttons_component import generate
 from db.models.ride_model import RideModel
+from repository.user_repository import UserRepository
 from configs.storage import start, finish, date, time, passenger, price, car, to_back, to_cancel
 
 
@@ -10,15 +11,18 @@ class RideRepository:
     def __init__(self, bot):
         self.ride = RideModel()
         self.bot = bot
+        self.user_repository = UserRepository()
 
     def show_ride(self, id, role, suggest=None):
         ride = self.ride.find_matching_ride(id)
         markup = types.InlineKeyboardMarkup()
 
         if ride is None:
-            return {"markup": markup, "rides_text": "Ride not found."}
+            return {"markup": markup, "rides_text": "Ուղևորություններ չեն գտնվել"}
 
-        rides_text = (f"{start} {ride['from_city']} "
+        user = self.user_repository.check_user_status(ride['user_id'])
+        rides_text = (f"{user['text']} Վարորդի վարկանիշ \n\n"
+                      f"{start} {ride['from_city']} "
                       f"{finish} {ride['to_city']}\n"
                       f"{date} {ride['ride_date']} "
                       f"{time} {ride['ride_time']}\n"
@@ -29,7 +33,7 @@ class RideRepository:
                       )
 
         if role == "passenger":
-            rides_text += f"Select places count for BOOKING"
+            rides_text += f"Ընտրեք տեղերի քանակը ամրագրման համար"
             places_count = []
             for i in range(1, int(ride['free_places']) + 1):
                 btn = types.InlineKeyboardButton(f"{passenger}" + str(i),
@@ -53,28 +57,31 @@ class RideRepository:
         markup = types.InlineKeyboardMarkup()
 
         if len(rides) == 0:
-            return {"markup": markup, "rides_text": "No rides found"}
+            return {"markup": markup, "rides_text": "Ուղևորություններ չեն գտնվել"}
 
         if suggest is None:
-            rides_text = "OK, this is a list of rides. \n\n"
+            rides_text = "Սա ուղևորությունների ցանկն է: \n\n"
 
         else:
-            rides_text = "We suggest you another rides. \n\n"
+            rides_text = "Առաջարկում ենք ձեզ նման այլ ուղևորություններ \n\n"
 
         rides_text += (f"{start} {data['from_city']} "
                        f"{finish} {data['to_city']}\n"
                        f"{date} {data['date']}\n"
                        f"{passenger} {data['free_places']}")
         for ride in rides:
+            user = self.user_repository.check_user_status(ride['user_id'])
             callback_params = "showRideForPassenger_" + str(ride['id'])
             if suggest is not None:
                 callback_params += "_suggest"
             else:
                 callback_params += "_"
-            ride_button_text = (f"{price} {str(ride['price'])} "
+
+            ride_button_text = (
+                                f"{user['rating']} "
+                                f"{price} {str(ride['price'])} "
                                 f"{time} {str(ride['ride_time'])} "
-                                f"{car} {ride['car_color']} {ride['car_mark']} "
-                                f"{str(ride['car_number']).upper().replace(" ", "")} ")
+                                f"{car} {ride['car_color']} {ride['car_mark']} ")
             btn = types.InlineKeyboardButton(ride_button_text, callback_data=callback_params)
             markup.add(btn)
 
@@ -88,9 +95,9 @@ class RideRepository:
         markup = types.InlineKeyboardMarkup()
 
         if len(rides) == 0:
-            return {"markup": markup, "rides_text": "You Haven't Rides yet."}
+            return {"markup": markup, "rides_text": "Դուք դեռ չունեք ուղևորություններ: \n\nԴուք կարող եք ստեղծել նոր ուղևորություն՝ սեղմելով այստեղ /driver"}
 
-        rides_text = "OK, this is a list of rides. \n\n"
+        rides_text = "Սա ուղևորությունների ցանկն է: \n\n"
 
         for ride in rides:
             ride_button_text = (f"{price} {str(ride['price'])} {date} {str(ride['ride_date'])} {time} {str(ride['ride_time'])}"
@@ -117,15 +124,15 @@ class RideRepository:
 
                     bot.send_message(ride['passenger_id'],
                                      text=(
-                                         f"Your ride  from {ride['from_city']} to {ride['to_city']} at {ride['ride_date']}"
-                                         f" was canceled, but now we can`t find another rides like this \n\n"))
+                                         f"Ձեր ուղևորությունը {ride['from_city']}-ից {ride['to_city']}, {ride['ride_date']}-ին"
+                                         f" չեղարկվել է, բայց հիմա մենք չենք կարող գտնել նման այլ ուղևորություններ\n\n"))
                 else:
                     bot.send_message(ride['passenger_id'],
                                      text=(
-                                         f"Your ride  from {ride['from_city']} to {ride['to_city']} at {ride['ride_date']}"
-                                         f" was canceled, we suggest you another rides like this \n\n"),
+                                         f"Ձեր ուղևորությունը {ride['from_city']}-ից  {ride['to_city']}, {ride['ride_date']}-ին"
+                                         f" չեղարկվել է, առաջարկում ենք ձեզ նման այլ ուղևորություններ\n\n"),
                                      reply_markup=data['markup'])
 
         self.ride.delete_ride_by_id(ride_id)
         bot.send_message(message.chat.id,
-                         text="Your ride successfully cancelled.")
+                         text="Ձեր ուղևորությունը հաջողությամբ չեղարկվեց:")

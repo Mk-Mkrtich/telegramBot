@@ -11,12 +11,12 @@ class CommonRepository:
         data = callback.data.split('_')
         year, month = int(data[2]), int(data[3])
 
-        if data[0] == 'prev':
+        if data[0] == 'Նախորդ':
             month -= 1
             if month == 0:
                 month = 12
                 year -= 1
-        elif data[0] == 'next':
+        elif data[0] == 'հաջորդ':
             month += 1
             if month == 13:
                 month = 1
@@ -25,5 +25,5 @@ class CommonRepository:
         self.calendar.year = year
         self.calendar.month = month
         markup = self.calendar.generate_calendar_keyboard()
-        self.bot.edit_message_text("Please select a date:", callback.message.chat.id, callback.message.message_id,
+        self.bot.edit_message_text("Խնդրում ենք ընտրել ամսաթիվ՝", callback.message.chat.id, callback.message.message_id,
                                    reply_markup=markup)

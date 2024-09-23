@@ -3,7 +3,7 @@ from telebot import types
 from datetime import datetime
 
 from components.time_component import generate_time_buttons
-from configs.storage import ids, can_not, time, passenger
+from configs.storage import ids, can_not, time, passenger, months
 from components.places_buttons_component import generate
 
 class CalendarComponent:
@@ -17,12 +17,13 @@ class CalendarComponent:
         keyboard = types.InlineKeyboardMarkup()
 
         # Month and Year navigation
-        keyboard.add(types.InlineKeyboardButton('<', callback_data=f'prev_month_{self.year}_{self.month}'),
-                     types.InlineKeyboardButton(f'{calendar.month_name[self.month]} {self.year}', callback_data='ignore'),
+        keyboard.row(types.InlineKeyboardButton('<', callback_data=f'prev_month_{self.year}_{self.month}'),
+                     types.InlineKeyboardButton(f'{months[calendar.month_name[self.month]]}', callback_data='ignore'),
+                     types.InlineKeyboardButton(f'{self.year}', callback_data='ignore'),
                      types.InlineKeyboardButton('>', callback_data=f'next_month_{self.year}_{self.month}'))
 
         # Days of the week
-        days_of_week = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+        days_of_week = ['Երկ', 'Երք', 'Չոր', 'Հինգ', 'Ուր', 'Շաբ', 'Կի']
         keyboard.row(*[types.InlineKeyboardButton(day, callback_data='ignore') for day in days_of_week])
 
         # Days of the month
@@ -70,13 +71,13 @@ class CalendarComponent:
         elif data[0] == 'day':
             year, month, day = int(data[1]), int(data[2]), int(data[3])
             ride.date = f"{year}-{month:02}-{day:02}"
-            ids.add(bot.send_message(callback.message.chat.id, f"Selected date: {ride.date}").id)
+            ids.add(bot.send_message(callback.message.chat.id, f"Ընտրված ամսաթիվ: {ride.date}").id)
             if role == 'driver':
                 next_step_data = generate_time_buttons(ride.date)
-                next_step_text = f"Please write the time {time}."
+                next_step_text = f"Խնդրում ենք ընտրել ժամը {time}."
             else:
                 next_step_data = generate()
-                next_step_text = f"Please write the number of free places {passenger}."
+                next_step_text = f"Խնդրում ենք ընտրել ազատ տեղերի քանակը {passenger}."
 
             return ['send', next_step_data, next_step_text]
 

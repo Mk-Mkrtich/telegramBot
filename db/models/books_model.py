@@ -28,8 +28,8 @@ class BooksModel(BaseModel, Paginator):
         self.cur.execute(
             """
             SELECT * FROM books_book
-            join rides_ride on (books.ride_id = rides.id)
-            WHERE books.id = %s
+            join rides_ride on (ride_id = rides_ride.id)
+            WHERE books_book.id = %s
             """,
             book_id
         )
@@ -48,7 +48,7 @@ class BooksModel(BaseModel, Paginator):
 
         query = """
             SELECT * FROM books_book
-            join rides_ride on (books.ride_id = rides.id)
+            join rides_ride on (ride_id = rides_ride.id)
             WHERE passenger_id = %s
         """
         params = [user_id]
@@ -61,7 +61,7 @@ class BooksModel(BaseModel, Paginator):
             self.paginator.update_total_pages(len(count))
 
         params.extend([self.page_size, self.paginator.offset])
-        query += " ORDER BY books.id LIMIT %s OFFSET %s"
+        query += " ORDER BY books_book.id LIMIT %s OFFSET %s"
         self.cur.execute(
             query,
             params

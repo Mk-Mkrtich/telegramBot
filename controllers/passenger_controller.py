@@ -7,8 +7,8 @@ class PassengerController(BaseController):
         super().__init__(bot)
 
     def finish_ride_find(self, message, places):
-        if self.check_ignore("finish_ride_find_selection"):
-            self.append_ignore("finish_ride_find_selection")
+        if self.check_ignore("finish_ride_find_selection_" + str(message.chat.id)):
+            self.append_ignore("finish_ride_find_selection_" + str(message.chat.id))
             ids.add(message.message_id)
             self.ride.free_places = places
             self.handle_ride_find(message, 'first')
