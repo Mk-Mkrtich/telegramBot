@@ -3,7 +3,7 @@ from controllers.base_controller import BaseController
 import re
 from components.price_buttons_component import generate_price_buttons
 from components.car_collor_component import generate_color_buttons
-from configs.storage import ids, start, finish, date, time, passenger, price, car, to_back, colors
+from configs.storage import ids, start, finish, date, time, passenger, price, car, colors, commandList
 
 class DriverController(BaseController):
     def __init__(self, bot):
@@ -38,6 +38,11 @@ class DriverController(BaseController):
     def set_car_mark(self, message):
         if self.check_ignore("set_car_mark_selection_" + str(message.chat.id)):
             self.append_ignore("set_car_mark_selection_" + str(message.chat.id))
+            command = message.text[1:]
+            if command in commandList:
+                return self.bot.send_message(message.chat.id, 'Դուք դադարեցրել եք գործողությունը,'
+                                                              f' խնդրում ենք կրկին ուղարկել /{command} հրամանը մեկ'
+                                                              f' այլ գործողություն սկսելու համար')
             ids.add(message.message_id)
             self.ride.car_mark = message.text
             ids.add(self.bot.send_message(message.chat.id, f"Ձեր մեքենայի մոդելը: {message.text}").id)
@@ -46,6 +51,12 @@ class DriverController(BaseController):
 
     def set_car_number(self, message):
         if self.check_ignore("set_car_number_selection_" + str(message.chat.id)):
+            command = message.text[1:]
+            if command in commandList:
+                return self.bot.send_message(message.chat.id, 'Դուք դադարեցրել եք գործողությունը,'
+                                                              f' խնդրում ենք կրկին ուղարկել /{command} հրամանը մեկ'
+                                                              f' այլ գործողություն սկսելու համար')
+
             pattern = re.compile(r'^\d{2,3}\s*[a-zA-Z]{2}\s*\d{2,3}$')
 
             if not pattern.match(message.text):

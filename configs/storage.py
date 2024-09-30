@@ -88,3 +88,5 @@ months = {
     "November": "Նոյեմբեր",
     "December": "Դեկտեմբեր",
 }
+
+commandList = ['start', 'help', 'driver', 'passenger', 'support', 'rideslist', 'bookslist']

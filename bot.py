@@ -4,7 +4,7 @@ import telebot
 from controllers.driver_controller import DriverController
 from controllers.passenger_controller import PassengerController
 from controllers.supoport_controller import SupportController
-from configs.storage import ids, next, user_ratings, can_not
+from configs.storage import ids, next, user_ratings, can_not, commandList
 from repository.user_repository import UserRepository
 
 load_dotenv()
@@ -17,29 +17,57 @@ support_handler = SupportController(bot)
 user = UserRepository()
 
 
-@bot.message_handler(commands=['start'])
+@bot.message_handler(commands=commandList)
 def start(message):
-    user.check_user(message)
-    text = (f"Բարև հարգելի  {message.from_user.first_name}, բարի գալուստ Հայաստանի ամենահեշտ, ամենահարմար և "
-            "օգտակար բոտը, այստեղ միայն իրական մարդիկ են, ովքեր փնտրում են"
-            " վարորդներ կամ ուղևորներ՝ միմյանց օգնելու և ճանապարհորդության արժեքը"
-            " նվազեցնելու համար. \n\n\n"
-            f"{can_not}{can_not} Բոտը պատասխանատու չէ և պարտավորություններ չունի։ "
-            f"Վճարումը կատարվում է ուղևորի և վարորդի համաձայնությամբ։ Բոտը ֆինանսական "
-            f"շահ չի հետապնդում, և հարթակը լիովին անվճար է:{can_not}{can_not} "
-            f"Լրացուցիչ տեղեկությունների համար սեղմեք այստեղ {next} /help \n\n"
-            f"եթե ցանկանում եք վարորդ գտնել` սեղմեք այստեղ {next} /passenger \n\n"
-            f"եթե ցանկանում եք գտնել ուղևորներ` սեղմեք այստեղ {next} /driver \n\n"
-            f"Կարող եք տեսնել ձեր ամրագրված տեղերը՝ սեղմելով այստեղ {next} /bookslist \n\n"
-            f"Դուք կարող եք գտնել ձեր ճանապարհորդությունները՝ սեղմելով այստեղ {next} /rideslist \n\n"
-            f"Եվ եթե որևէ խնդիր ունեք, կարող եք գրել մեր աջակցման թիմին՝ սեղմելով այստեղ {next} /support \n\n\n"
+    command = message.text[1:]
+    commands_dict = {
+        'start': start_function,
+        'help': help,
+        'driver': driver,
+        'passenger': passenger,
+        'rideslist': rideslist,
+        'bookslist': bookslist,
+        'support': support,
+    }
 
-            f"Փորձեք նաև գտնել այս հրամանը ներքևի ձախ անկյունում՝ սեղմելով ցանկի կոճակը ↙️")
-    ids.add(bot.send_message(message.chat.id, text).id)
+    if command in commands_dict:
+        commands_dict[command](message)
 
 
-@bot.message_handler(commands=['help'])
-def start(message):
+def bookslist(message):
+    passenger_handler.clear_history(message.chat.id)
+    passenger_handler.get_books_list(message, 'first')
+
+
+def rideslist(message):
+    driver_handler.clear_history(message.chat.id)
+    driver_handler.get_ride_list(message, "first")
+
+
+def passenger(message):
+    passenger_handler.clear_history(message.chat.id)
+    if validate_user(message):
+        return
+    user.set_role(message.chat.id, 'passenger')
+    passenger_handler.start(message)
+
+
+def driver(message):
+    driver_handler.clear_history(message.chat.id)
+    if validate_user(message):
+        return
+    user.set_role(message.chat.id, 'driver')
+    driver_handler.start(message)
+
+
+def support(message):
+    if message.chat.username is None:
+        return ids.add(bot.send_message(message.chat.id,
+                                        "Խնդրում ենք ավելացնել  օգտատիրոջ անուն՝ \n\n օրինակ @find_way_arm_bot").id)
+    support_handler.support_message(message)
+
+
+def help(message):
     text1 = ("Եթե դուք վարորդ եք, կարող եք հրապարակել ձեր ուղևորությունները այստեղ՝ նշելով քաղաքները,"
              " ուղևորության օրը և ժամը, ուղևորների քանակը, որոնց կարող եք վերցնել, գինը, որով ցանկանում եք "
              "գնալ, ինչպես նաև մեքենայի գույնը, մոդելը և պետհամարանիշը։ Ուղևորները, որոնք կկարողանան "
@@ -68,41 +96,24 @@ def start(message):
     ids.add(bot.send_message(message.chat.id, text3).id)
 
 
-@bot.message_handler(commands=['driver'])
-def start(message):
-    driver_handler.clear_history(message.chat.id)
-    if validate_user(message):
-        return
-    user.set_role(message.chat.id, 'driver')
-    driver_handler.start(message)
+def start_function(message):
+    user.check_user(message)
+    text = (f"Բարև հարգելի  {message.from_user.first_name}, բարի գալուստ Հայաստանի ամենահեշտ, ամենահարմար և "
+            "օգտակար բոտը, այստեղ միայն իրական մարդիկ են, ովքեր փնտրում են"
+            " վարորդներ կամ ուղևորներ՝ միմյանց օգնելու և ճանապարհորդության արժեքը"
+            " նվազեցնելու համար. \n\n\n"
+            f"{can_not}{can_not} Բոտը պատասխանատու չէ և պարտավորություններ չունի։ "
+            f"Վճարումը կատարվում է ուղևորի և վարորդի համաձայնությամբ։ Բոտը ֆինանսական "
+            f"շահ չի հետապնդում, և հարթակը լիովին անվճար է:{can_not}{can_not} "
+            f"Լրացուցիչ տեղեկությունների համար սեղմեք այստեղ {next} /help \n\n"
+            f"եթե ցանկանում եք վարորդ գտնել` սեղմեք այստեղ {next} /passenger \n\n"
+            f"եթե ցանկանում եք գտնել ուղևորներ` սեղմեք այստեղ {next} /driver \n\n"
+            f"Կարող եք տեսնել ձեր ամրագրված տեղերը՝ սեղմելով այստեղ {next} /bookslist \n\n"
+            f"Դուք կարող եք գտնել ձեր ճանապարհորդությունները՝ սեղմելով այստեղ {next} /rideslist \n\n"
+            f"Եվ եթե որևէ խնդիր ունեք, կարող եք գրել մեր աջակցման թիմին՝ սեղմելով այստեղ {next} /support \n\n\n"
 
-
-@bot.message_handler(commands=['support'])
-def start(message):
-    if message.chat.username is None:
-        return ids.add(bot.send_message(message.chat.id,
-                                        "Խնդրում ենք ավելացնել  օգտատիրոջ անուն՝ \n\n օրինակ @find_way_arm_bot").id)
-    support_handler.support_message(message)
-
-
-@bot.message_handler(commands=['passenger'])
-def start(message):
-    passenger_handler.clear_history(message.chat.id)
-    if validate_user(message):
-        return
-    user.set_role(message.chat.id, 'passenger')
-    passenger_handler.start(message)
-
-
-@bot.message_handler(commands=['rideslist'])
-def start(message):
-    driver_handler.clear_history(message.chat.id)
-    driver_handler.get_ride_list(message, "first")
-
-
-@bot.message_handler(commands=['bookslist'])
-def start(message):
-    passenger_handler.get_books_list(message, 'first')
+            f"Փորձեք նաև գտնել այս հրամանը ներքևի ձախ անկյունում՝ սեղմելով ցանկի կոճակը ↙️")
+    ids.add(bot.send_message(message.chat.id, text).id)
 
 
 @bot.callback_query_handler(func=lambda callback: True)
@@ -145,16 +156,12 @@ def callback(callback):
         passenger_handler.handle_ride_find(callback.message, fullData[1])
     elif data == "showRideForPassenger":
         passenger_handler.show_ride(callback.message, fullData[1], fullData[2])
-
-
     elif data == "ridesForDriver":
         driver_handler.get_ride_list(callback.message, fullData[1])
     elif data == "showRideForDriver":
         driver_handler.show_ride(callback.message, fullData[1])
     elif data == "cancelRide":
         driver_handler.cancel_ride(callback.message, fullData[1])
-
-
     elif data == "bookRide":
         passenger_handler.book_ride(callback.message, fullData[1], fullData[2])
     elif data == "booksList":

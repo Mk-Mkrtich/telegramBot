@@ -1,5 +1,5 @@
 from controllers.base_controller import BaseController
-
+from configs.storage import commandList
 
 class SupportController(BaseController):
 
@@ -19,6 +19,11 @@ class SupportController(BaseController):
     def handler_support_message(self, message):
         if self.check_ignore("handler_support_message_" + str(message.chat.id)):
             self.append_ignore("handler_support_message_" + str(message.chat.id))
+            command = message.text[1:]
+            if command in commandList:
+                return self.bot.send_message(message.chat.id, 'Դուք դադարեցրել եք գործողությունը,'
+                                                              f' խնդրում ենք կրկին ուղարկել /{command} հրամանը մեկ'
+                                                              f' այլ գործողություն սկսելու համար')
             self.support.support_message = message.text
             self.support.user_id = message.from_user.id
             self.support.user_name = message.from_user.username
@@ -29,7 +34,6 @@ class SupportController(BaseController):
                     "Ձեր հայտը անպայման կուսումնասիրվի մեր աջակցման թիմի կողմից, "
                     "և անհրաժեշտության դեպքում մենք կկապվենք ձեզ հետ։")
             self.bot.send_message(message.chat.id, text)
-
 
     def answer_to_user(self, data):
         self.support.support_message = data.text
