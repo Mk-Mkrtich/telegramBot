@@ -121,8 +121,8 @@ class RideModel(BaseModel):
         self.cur.execute(
             """
             SELECT * FROM rides_ride
-            join books_book on (books.ride_id = rides.id)
-            WHERE rides.id = %s
+            join books_book on (books_book.ride_id = rides_ride.id)
+            WHERE rides_ride.id = %s
             """,
             ride_id
         )

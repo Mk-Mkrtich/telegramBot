@@ -61,6 +61,7 @@ def driver(message):
 
 
 def support(message):
+    driver_handler.clear_history(message.chat.id)
     if message.chat.username is None:
         return ids.add(bot.send_message(message.chat.id,
                                         "Խնդրում ենք ավելացնել  օգտատիրոջ անուն՝ \n\n օրինակ @find_way_arm_bot").id)
@@ -68,6 +69,8 @@ def support(message):
 
 
 def help(message):
+    driver_handler.clear_history(message.chat.id)
+    ids.add(message.message_id)
     text1 = ("Եթե դուք վարորդ եք, կարող եք հրապարակել ձեր ուղևորությունները այստեղ՝ նշելով քաղաքները,"
              " ուղևորության օրը և ժամը, ուղևորների քանակը, որոնց կարող եք վերցնել, գինը, որով ցանկանում եք "
              "գնալ, ինչպես նաև մեքենայի գույնը, մոդելը և պետհամարանիշը։ Ուղևորները, որոնք կկարողանան "
@@ -113,7 +116,7 @@ def start_function(message):
             f"Եվ եթե որևէ խնդիր ունեք, կարող եք գրել մեր աջակցման թիմին՝ սեղմելով այստեղ {next} /support \n\n\n"
 
             f"Փորձեք նաև գտնել այս հրամանը ներքևի ձախ անկյունում՝ սեղմելով ցանկի կոճակը ↙️")
-    ids.add(bot.send_message(message.chat.id, text).id)
+    bot.send_message(message.chat.id, text)
 
 
 @bot.callback_query_handler(func=lambda callback: True)

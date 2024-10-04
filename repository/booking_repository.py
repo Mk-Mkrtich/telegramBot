@@ -32,9 +32,9 @@ class BookingRepository:
 
         self.bot.send_message(message.chat.id, f"Մենք գրանցում ենք ձեր ամրագրումը.\n\n"
                                                f"@{username} Դուք ամրագրել եք {places} տեղ "
-                                               f"{ride_data['user_name']}, այժմ կարող եք կապ հաստատել"
-                                               f"@{ride_data['user_name']}-ի հետ:\n\n"
-                                               f"ID: {ride_data['user_id']} սա վարորդի ID-ն է, այն ձեզ անհրաժեշտ "
+                                               f"{ride_data['user_name']}, այժմ կարող եք կապ հաստատել "
+                                               f"@{ride_data['user_name']} -ի հետ:\n\n"
+                                               f"ID: {ride_data['user_id']} \nսա վարորդի ID-ն է, այն ձեզ անհրաժեշտ "
                                                f"կլինի բողոքների համար:\n\n"
                                                f"{start} {ride_data['from_city']} "
                                                f"{finish} {ride_data['to_city']}\n"
@@ -43,21 +43,21 @@ class BookingRepository:
                                                f"{passenger} {ride_data['free_places']} / {ride_data['places']} "
                                                f"{price} {ride_data['price']}\n"
                                                f"{car} {ride_data['car_color']} {ride_data['car_mark']} "
-                                               f"{str(ride_data['car_number']).upper().replace(" ", "")}"
+                                               f"{str(ride_data['car_number']).upper().replace(" ", "")}\n\n"
                                                f"Խնդրում եմ, հիշեք, որ գործ ունեք իրական մարդկանց հետ, "
-                                               f"խնդրում եմ մի ուշացեք, չեղարկեք ուղևորությունից 2 ժամ առաջ։ "
+                                               f"խնդրում եմ մի ուշացեք, չեղարկեք ուղևորությունից 2 ժամ առաջ։ \n\n"
                                                f"Եթե նկատում եք ուղևորների անընդունելի վարքագիծը,"
                                                f" տեղեկացրեք մեզ:"
-                                               f"Գրեք հաղորդագրություն բոտին՝ նշելով ուղևորի օգտանունը "
-                                               f"'Telegram'- ում և բողոքի պատճառ"
-                              )
+                                               f"Գրեք հաղորդագրություն բոտին՝ /support նշելով ուղևորի ID"
+                                               f" և բողոքի պատճառ")
+
         user = self.user_repository.check_user_status(message.chat.id)
         self.bot.send_message(ride_data['user_id'], f'Ողջույն {ride_data['user_name']}, {username}-ը ամրագրեց '
                                                     f'{places} տեղ {ride_data['ride_date']} '
                                                     f'{ride_data['ride_time']}-ին \n'
                                                     f'{ride_data['from_city']}-ից {ride_data['to_city']}, '
-                                                    f'այժմ կարող եք կապ հաստատել @{username} -ի հետ.'
-                                                    f"ID: {message.chat.id} սա ուղևորի ID-ն է, այն ձեզ անհրաժեշտ "
+                                                    f'այժմ կարող եք կապ հաստատել @{username} -ի հետ. '
+                                                    f"ID: {message.chat.id} \nսա ուղևորի ID-ն է, այն ձեզ անհրաժեշտ "
                                                     f"կլինի բողոքների համար:\n\n"
                                                     f"{user['text']} Ուղևորի վարկանիշ \n\n"
                               )
@@ -68,7 +68,8 @@ class BookingRepository:
 
         if len(books) == 0:
             return {"markup": markup,
-                    "rides_text": "Դուք դեռ չեք ամրագրել ուղևորություններ: \n Ամրագրման համար կարող եք սեղմել այստեղ"}
+                    "rides_text": "Դուք դեռ չեք ամրագրել ուղևորություններ: \n"
+                                  "Ամրագրման համար կարող եք սեղմել այստեղ /passenger"}
 
         rides_text = "Սա Ձեր ամրագրումների ցանկն է: \n\n"
 
@@ -86,17 +87,19 @@ class BookingRepository:
     def show_book(self, book_id):
         book = self.bookings.get_book(book_id)
         markup = types.InlineKeyboardMarkup()
+        user = self.user_repository.check_user_status(book['user_id'])
 
         rides_text = (f"Դուք ամրագրել եք {str(book['booked_places'])} տեղ \n\n"
                       f"{start} {book['from_city']} "
                       f"{finish} {book['to_city']}\n"
-                      f"{price} {book['price']}\n"
+                      f"{price} {book['price']} դրամ, ընդ. {book['booked_places'] * book['price']} դրամ\n"
                       f"{date} {book['ride_date']} "
                       f"{time} {book['ride_time']}\n"
                       f"{car} {book['car_color']} {book['car_mark']} "
                       f"{str(book['car_number']).upper().replace(" ", "")}\n"
-                      f"{passenger} @{book['user_name']}"
-                      f"ID: {book['user_id']}"
+                      f"{passenger} @{book['user_name']} "
+                      f"ID: {book['user_id']}\n"
+                      f"{user['text']} Վարորդի վարկանիշ \n\n"
                       )
         btn = types.InlineKeyboardButton(f'{to_cancel}', callback_data="cancelBook_" + str(book['id']))
         back = types.InlineKeyboardButton(f"{to_back}", callback_data="booksList_first")
@@ -112,8 +115,10 @@ class BookingRepository:
         self.ride.update(ride_id, places)
 
         self.bot.send_message(book['user_id'], (
-            f'Ողջույն {book['user_name']}, ուղևորներից մեկը չեղարկել է ամրագրումը, այժմ դուք ունեք ևս '
-            f'{book['booked_places']} ազատ տեղ'))
+            f'Ողջույն {book['user_name']}, ուղևորներից մեկը չեղարկել է ամրագրումը\n\n'
+            f' {book['from_city']}ից {book['to_city']}\n'
+            f' {date} {book['ride_date']} {time} {book['ride_time']} \n\n'
+            f"այժմ դուք ունեք ևս {book['booked_places']} ազատ տեղ"))
         self.bookings.delete_book(book_id)
 
         rides_text = "Դուք չեղարկել եք ամրագրումը"

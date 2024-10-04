@@ -94,7 +94,6 @@ class DriverController(BaseController):
 
     def get_ride_list(self, message, action):
         data = self.ride_repo.ride_list(message.chat.id, action)
-        ids.add(message.message_id)
         self.clear_history(message.chat.id)
         ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
 

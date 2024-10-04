@@ -25,7 +25,6 @@ class BaseController:
         self.trash_ignore(message.chat.id)
         if self.check_ignore("start_action_" + str(message.chat.id)):
             self.append_ignore("start_action_" + str(message.chat.id))
-            ids.add(message.message_id)
             markup = generate_city_buttons(self.cities(), "fromCity")
             ids.add(self.bot.send_message(message.chat.id, "Խնդրում ենք ընտրել, թե որ քաղաքից եք գնալու", reply_markup=markup).id)
 
