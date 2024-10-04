@@ -8,17 +8,18 @@ class SupportModel(BaseModel):
         super().__init__()
         self.user_id = ''
         self.user_name = ''
-        self.support_message = ''
+        self.user_message = ''
+        self.support_message = ' '
         self.date = datetime.datetime.now()
         self.status = 0
 
     def save_to_db(self):
         self.cur.execute(
             """
-            INSERT INTO support_support (user_id, user_name, support_message, date, status)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO support_support (user_id, user_name, user_message, support_message, date, status)
+            VALUES (%s, %s, %s, %s, %s, %s)
             """,
-            (self.user_id, self.user_name, self.support_message, self.date, self.status)
+            (self.user_id, self.user_name, self.user_message, self.support_message, self.date, self.status)
         )
         self.conn.commit()
 

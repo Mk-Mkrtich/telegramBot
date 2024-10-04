@@ -24,7 +24,7 @@ class SupportController(BaseController):
                 return self.bot.send_message(message.chat.id, 'Դուք դադարեցրել եք գործողությունը,'
                                                               f' խնդրում ենք կրկին ուղարկել /{command} հրամանը մեկ'
                                                               f' այլ գործողություն սկսելու համար')
-            self.support.support_message = message.text
+            self.support.user_message = message.text
             self.support.user_id = message.from_user.id
             self.support.user_name = message.from_user.username
             self.support.save_to_db()
@@ -34,11 +34,3 @@ class SupportController(BaseController):
                     "Ձեր հայտը անպայման կուսումնասիրվի մեր աջակցման թիմի կողմից, "
                     "և անհրաժեշտության դեպքում մենք կկապվենք ձեզ հետ։")
             self.bot.send_message(message.chat.id, text)
-
-    def answer_to_user(self, data):
-        self.support.support_message = data.text
-        self.support.user_id = 0
-        self.support.user_name = '@find_way_arm_bot'
-        self.support.save_to_db()
-        self.bot.send_message(data.user_id, data.text)
-        self.trash_ignore(data.user_id)
