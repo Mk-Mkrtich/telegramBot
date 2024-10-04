@@ -39,7 +39,7 @@ class UserRepository:
     def check_user(self, message):
         self.user.user_id = message.from_user.id
         if self.user.find_user() is None:
-            self.user.user_name = message.from_user.username
+            self.user.user_name = message.from_user.username or ' '
             self.user.bad_rating = 0
             self.user.blocked_until = None
             self.user.create_user()
