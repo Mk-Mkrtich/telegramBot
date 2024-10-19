@@ -1,6 +1,9 @@
+
 from dotenv import load_dotenv
 import os
 import telebot
+from telebot.types import KeyboardButton
+from telebot import types
 from controllers.driver_controller import DriverController
 from controllers.passenger_controller import PassengerController
 from controllers.supoport_controller import SupportController
@@ -15,6 +18,13 @@ driver_handler = DriverController(bot)
 passenger_handler = PassengerController(bot)
 support_handler = SupportController(bot)
 user = UserRepository()
+
+
+@bot.message_handler(content_types=['contact'])
+def contact(message):
+    if message.contact is not None:
+        phone_number = message.contact.phone_number
+        bot.send_message(message.chat.id, f"Thank you for sharing your phone number: {phone_number}")
 
 
 @bot.message_handler(commands=commandList)
@@ -180,6 +190,10 @@ def validate_user(message):
     if message.chat.username is None:
         ids.add(bot.send_message(message.chat.id,
                                  "Խնդրում ենք ավելացնել օգտատիրոջ անուն՝ \n\n օրինակ @find_way_arm_bot").id)
+        markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+        button_phone = types.KeyboardButton(text="Share phone number", request_contact=True)
+        markup.add(button_phone)
+        bot.send_message(message.chat.id, "Please share your phone number:", reply_markup=markup)
         return True
     user_check_data = user.check_user(message)
     if user_check_data['blocked']:
