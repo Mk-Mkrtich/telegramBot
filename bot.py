@@ -29,20 +29,22 @@ def contact(message):
 
 @bot.message_handler(commands=commandList)
 def start(message):
-    command = message.text[1:]
-    commands_dict = {
-        'start': start_function,
-        'help': help,
-        'driver': driver,
-        'passenger': passenger,
-        'rideslist': rideslist,
-        'bookslist': bookslist,
-        'support': support,
-    }
+    if user.check_user(message):
+        command = message.text[1:]
+        commands_dict = {
+            'start': start_function,
+            'help': help,
+            'driver': driver,
+            'passenger': passenger,
+            'rideslist': rideslist,
+            'bookslist': bookslist,
+            'support': support,
+        }
 
-    if command in commands_dict:
-        commands_dict[command](message)
-
+        if command in commands_dict:
+            commands_dict[command](message)
+    else:
+        bot.send_message(message.chat.id, "try later")
 
 def bookslist(message):
     passenger_handler.clear_history(message.chat.id)
@@ -110,7 +112,6 @@ def help(message):
 
 
 def start_function(message):
-    user.check_user(message)
     text = (f"Բարև հարգելի  {message.from_user.first_name}, բարի գալուստ Հայաստանի ամենահեշտ, ամենահարմար և "
             "օգտակար բոտը, այստեղ միայն իրական մարդիկ են, ովքեր փնտրում են"
             " վարորդներ կամ ուղևորներ՝ միմյանց օգնելու և ճանապարհորդության արժեքը"
