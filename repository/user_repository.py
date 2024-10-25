@@ -14,11 +14,9 @@ class UserRepository:
 
     def check_user(self, message):
         user = admin_call({'tuid': message.from_user.id, 'username': message.from_user.username or None}, "tuser/get", 'POST')
-        print(user)
         if user['code'] == 200:
             if user is None or user['data']['is_active'] is False:
                 return False
             return True
         else:
-            print(user)
             return False

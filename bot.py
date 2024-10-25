@@ -58,16 +58,16 @@ def rideslist(message):
 
 def passenger(message):
     passenger_handler.clear_history(message.chat.id)
-    if validate_user(message):
-        return
+    # if validate_user(message):
+    #     return
     user.set_role(message.chat.id, 'passenger')
     passenger_handler.start(message)
 
 
 def driver(message):
     driver_handler.clear_history(message.chat.id)
-    if validate_user(message):
-        return
+    # if validate_user(message):
+    #     return
     user.set_role(message.chat.id, 'driver')
     driver_handler.start(message)
 
@@ -186,22 +186,22 @@ def callback(callback):
         passenger_handler.cancel_book(callback.message, fullData[1])
 
 
-def validate_user(message):
-    user = UserRepository()
-    if message.chat.username is None:
-        ids.add(bot.send_message(message.chat.id,
-                                 "Խնդրում ենք ավելացնել օգտատիրոջ անուն՝ \n\n օրինակ @find_way_arm_bot").id)
-        markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-        button_phone = types.KeyboardButton(text="Share phone number", request_contact=True)
-        markup.add(button_phone)
-        bot.send_message(message.chat.id, "Please share your phone number:", reply_markup=markup)
-        return True
-    user_check_data = user.check_user(message)
-    if user_check_data['blocked']:
-        ids.add(bot.send_message(message.chat.id, user_check_data['text']).id)
-        return True
-
-    return False
+# def validate_user(message):
+#     user = UserRepository()
+#     if message.chat.username is None:
+#         ids.add(bot.send_message(message.chat.id,
+#                                  "Խնդրում ենք ավելացնել օգտատիրոջ անուն՝ \n\n օրինակ @find_way_arm_bot").id)
+#         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+#         button_phone = types.KeyboardButton(text="Share phone number", request_contact=True)
+#         markup.add(button_phone)
+#         bot.send_message(message.chat.id, "Please share your phone number:", reply_markup=markup)
+#         return True
+#     user_check_data = user.check_user(message)
+#     if user_check_data:
+#         ids.add(bot.send_message(message.chat.id, user_check_data['text']).id)
+#         return True
+#
+#     return False
 
 
 bot.polling(none_stop=True)
