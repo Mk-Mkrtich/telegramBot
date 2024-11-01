@@ -3,3 +3,4 @@
 .env
 __pycache__/
 *.pyc
+AES_ENCRYPTION_KEY.bin
