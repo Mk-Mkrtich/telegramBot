@@ -1,20 +1,13 @@
-from db.models.base_model import BaseModel
+from admin.api_call import admin_call
 
-class CitiesModel(BaseModel):
 
-    def __init__(self):
-        super().__init__()
-        self.table_name = "cities_cities"
+class CitiesModel:
 
     def get_cities(self):
-        self.cur.execute(
-            """
-            SELECT `name` FROM cities_cities
-            """,
-        )
-        rows = self.cur.fetchall()
-        city_names = [row['name'] for row in rows]
-        return city_names
+        try:
+            cities = admin_call(None, "tcities")['data']['cities']
+        except Exception as e:
+            print(str(e), e.__context__, e.__class__)
+        else:
+            return cities
 
-    def __del__(self):
-        super().__del__()

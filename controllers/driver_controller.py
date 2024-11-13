@@ -1,9 +1,13 @@
+from admin.api_call import admin_call
+from db.models.car_model import CarModel
 from db.models.ride_model import RideModel
 from controllers.base_controller import BaseController
 import re
 from components.price_buttons_component import generate_price_buttons
 from components.car_collor_component import generate_color_buttons
+from components.baggage_component import generate_baggage_buttons
 from configs.storage import ids, start, finish, date, time, passenger, price, car, colors, commandList
+
 
 class DriverController(BaseController):
     def __init__(self, bot):
@@ -14,9 +18,18 @@ class DriverController(BaseController):
             self.append_ignore("set_places_selection_" + str(message.chat.id))
             ids.add(message.message_id)
             self.ride.places = self.ride.free_places = places
-            markup = generate_price_buttons()
+            markup = generate_baggage_buttons()
             ids.add(self.bot.send_message(message.chat.id, f"Ընտրված ազատ տեղեր. {places}").id)
-            ids.add(self.bot.send_message(message.chat.id, "Խնդրում ենք Ընտրեք արժեքը ֏ մեկ ուղևորի համար։", reply_markup=markup).id)
+            ids.add(self.bot.send_message(message.chat.id, "xndrum enq ynterl uxeberi arkayutyuny", reply_markup=markup).id)
+
+    def set_baggage(self, message, baggage):
+        if self.check_ignore("set_baggage_" + str(message.chat.id)):
+            self.append_ignore("set_baggage_" + str(message.chat.id))
+            ids.add(message.message_id)
+            self.ride.baggage = (baggage == 'yes')
+            markup = generate_price_buttons()
+            ids.add(self.bot.send_message(message.chat.id, "Խնդրում ենք Ընտրեք արժեքը ֏ մեկ ուղևորի համար։",
+                                          reply_markup=markup).id)
 
     def set_price(self, message, price):
         if self.check_ignore("set_price_selection_" + str(message.chat.id)):
@@ -30,7 +43,7 @@ class DriverController(BaseController):
     def set_color(self, message, color):
         if self.check_ignore("set_color_selection_" + str(message.chat.id)):
             self.append_ignore("set_color_selection_" + str(message.chat.id))
-            self.ride.car_color = color
+            self.car.color = color
             ids.add(self.bot.send_message(message.chat.id, f"Ընտրված գույն: {colors[color] + " " + color}").id)
             ids.add(self.bot.send_message(message.chat.id,  "Խնդրում ենք Գրեք ձեր մեքենայի մոդելը.").id)
             self.bot.register_next_step_handler(message, self.set_car_mark)
@@ -44,7 +57,7 @@ class DriverController(BaseController):
                                                               f' խնդրում ենք կրկին ուղարկել /{command} հրամանը մեկ'
                                                               f' այլ գործողություն սկսելու համար')
             ids.add(message.message_id)
-            self.ride.car_mark = message.text
+            self.car.model = message.text
             ids.add(self.bot.send_message(message.chat.id, f"Ձեր մեքենայի մոդելը: {message.text}").id)
             ids.add(self.bot.send_message(message.chat.id, "Խնդրում ենք Գրեք ձեր մեքենայի պետ. համարըանիշը:").id)
             self.bot.register_next_step_handler(message, self.set_car_number)
@@ -66,31 +79,27 @@ class DriverController(BaseController):
             else:
                 self.append_ignore("set_car_number_selection_" + str(message.chat.id))
                 ids.add(message.message_id)
-                self.ride.car_number = message.text
                 ids.add(self.bot.send_message(message.chat.id, f"Ձեր մեքենայի պետ. համարըանիշը: {message.text}").id)
-
-                self.ride.user_name = message.from_user.username
-                self.ride.user_id = message.from_user.id
-                self.end_message_id = message.message_id
                 self.clear_history(message.chat.id)
-                self.bot.send_message(message.chat.id, f"Մենք գրանցեցինք ձեր ուղևորությունը:\n\n"
-                                                       f"{start} {self.ride.from_city} "
-                                                       f"{finish} {self.ride.to_city}\n"
-                                                       f"{date} {self.ride.date} "
-                                                       f"{time} {self.ride.ride_time}\n"
-                                                       f"{passenger} {self.ride.places} Ազատ տեղ  \n"
-                                                       f"{price} {self.ride.price}֏ դրամ\n"
-                                                       f"{car} {self.ride.car_color} {self.ride.car_mark} "
-                                                       f"{str(self.ride.car_number).upper().replace(" ", "")}"
-                                                       f"\n\n\n"
-                                                       f"Խնդրում եմ, հիշեք, որ գործ ունեք իրական մարդկանց հետ, "
-                                                       f"խնդրում եմ մի ուշացեք, չեղարկեք ուղևորությունից 2 ժամ առաջ։ "
-                                                       f"Եթե նկատում եք ուղևորների անընդունելի վարքագիծը,"
-                                                       f" տեղեկացրեք մեզ:"
-                                                       f"Գրեք հաղորդագրություն բոտին՝ նշելով ուղևորի օգտանունը "
-                                                       f"'Telegram'- ում և բողոքի պատճառ")
-                self.ride.save_to_db()
+
+                self.car.number = message.text
+                self.car.tuid = message.chat.id
+                new_car_data = self.car.check_car()
+
+                self.ride.car_id = new_car_data['data']['id']
+                self.ride.user_id = new_car_data['data']['user_id']
+
+                ride = self.ride.save_ride()
+                if ride['code'] == 401:
+                    self.bot.send_message(message.chat.id,
+                                          f"uxevorutyunneri mijev petq e lini mininimum mek jam tarberutyun :")
+                elif ride['code'] == 201:
+                    self.bot.send_message(message.chat.id, f"Մենք գրանցեցինք ձեր ուղևորությունը:")
+                else:
+                    self.bot.send_message(message.chat.id, f"arka e texnikakan xndir, xndrum enq porcel mi poqr ush")
+
                 self.ride = RideModel()
+                self.car = CarModel()
 
     def get_ride_list(self, message, action):
         data = self.ride_repo.ride_list(message.chat.id, action)

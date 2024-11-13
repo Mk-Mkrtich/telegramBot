@@ -4,7 +4,7 @@ import requests
 import os
 
 
-def admin_call(data: dict, url, method):
+def admin_call(data: dict or None, url, method="GET"):
     response = None
     try:
         full_url = os.getenv('ADMIN_PROTOKOL') + os.getenv('ADMIN_HOST') + os.getenv('ADMIN_PORT') + '/' + url
@@ -12,7 +12,8 @@ def admin_call(data: dict, url, method):
             'TBTOKEN': os.getenv('ADMIN_TOKEN'),
             'Content-Type': 'application/json',
         }
-        data = encrypt_json(data)
+        if data:
+            data = encrypt_json(data)
         if method == 'GET':
             response = requests.get(full_url, headers=headers, params=data)
         elif method == 'POST':

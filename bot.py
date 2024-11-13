@@ -58,16 +58,12 @@ def rideslist(message):
 
 def passenger(message):
     passenger_handler.clear_history(message.chat.id)
-    # if validate_user(message):
-    #     return
     user.set_role(message.chat.id, 'passenger')
     passenger_handler.start(message)
 
 
 def driver(message):
     driver_handler.clear_history(message.chat.id)
-    # if validate_user(message):
-    #     return
     user.set_role(message.chat.id, 'driver')
     driver_handler.start(message)
 
@@ -136,13 +132,12 @@ def callback(callback):
     fullData = callback.data.split('_')
     print(fullData)
     data = fullData[0]
-    cities = driver_handler.cities()
-    if data == "fromCity" and fullData[1] in cities:
+    if data == "fromCity":
         if role == "driver":
             driver_handler.handle_from_city_selection(callback.message, fullData[1])
         else:
             passenger_handler.handle_from_city_selection(callback.message, fullData[1])
-    elif data == "toCity" and fullData[1] in cities:
+    elif data == "toCity":
         if role == "driver":
             driver_handler.handle_to_city_selection(callback.message, fullData[1])
         else:
@@ -166,6 +161,8 @@ def callback(callback):
     elif data == "setColor":
         driver_handler.set_color(callback.message, fullData[1])
         user.set_role(callback.message.chat.id, 'none')
+    elif data == "baggage":
+        driver_handler.set_baggage(callback.message, fullData[1])
     elif data == "ridesForPassenger":
         passenger_handler.handle_ride_find(callback.message, fullData[1])
     elif data == "showRideForPassenger":

@@ -7,7 +7,7 @@ def generate_color_buttons():
     buttons = []
 
     for key, value in colors.items():
-        buttons.append(types.InlineKeyboardButton(value + " " + key, callback_data="setColor_" + key))
+        buttons.append(types.InlineKeyboardButton(value, callback_data="setColor_" + key))
 
         if len(buttons) % 2 == 0:
             markup.row(*buttons)
