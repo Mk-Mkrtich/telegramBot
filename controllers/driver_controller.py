@@ -1,4 +1,5 @@
 from admin.api_call import admin_call
+from components.generate_cars_buttons import generate_cars_buttons
 from db.models.car_model import CarModel
 from db.models.ride_model import RideModel
 from controllers.base_controller import BaseController
@@ -37,6 +38,21 @@ class DriverController(BaseController):
             ids.add(message.message_id)
             self.ride.price = price
             ids.add(self.bot.send_message(message.chat.id, f"Ընտրված գինը. {price}").id)
+
+            self.car.tuid = message.chat.id
+            cars = self.car.get_car()
+            if cars['data'] is not None:
+                markup = generate_cars_buttons(cars['data'])
+                ids.add(self.bot.send_message(message.chat.id, "testttttttttttttւ", reply_markup=markup).id)
+            else:
+                markup = generate_color_buttons()
+                ids.add(self.bot.send_message(message.chat.id, "Խնդրում ենք Ընտրեք ձեր մեքենայի գույնը:", reply_markup=markup).id)
+
+    def set_new_car(self, message, user_id):
+        if self.check_ignore("set_new_car" + str(message.chat.id)):
+            self.append_ignore("set_new_car" + str(message.chat.id))
+            ids.add(message.message_id)
+            self.ride.user_id = user_id
             markup = generate_color_buttons()
             ids.add(self.bot.send_message(message.chat.id, "Խնդրում ենք Ընտրեք ձեր մեքենայի գույնը:", reply_markup=markup).id)
 
@@ -80,7 +96,7 @@ class DriverController(BaseController):
                 self.append_ignore("set_car_number_selection_" + str(message.chat.id))
                 ids.add(message.message_id)
                 ids.add(self.bot.send_message(message.chat.id, f"Ձեր մեքենայի պետ. համարըանիշը: {message.text}").id)
-                self.clear_history(message.chat.id)
+
 
                 self.car.number = message.text
                 self.car.tuid = message.chat.id
@@ -89,17 +105,27 @@ class DriverController(BaseController):
                 self.ride.car_id = new_car_data['data']['id']
                 self.ride.user_id = new_car_data['data']['user_id']
 
-                ride = self.ride.save_ride()
-                if ride['code'] == 401:
-                    self.bot.send_message(message.chat.id,
-                                          f"uxevorutyunneri mijev petq e lini mininimum mek jam tarberutyun :")
-                elif ride['code'] == 201:
-                    self.bot.send_message(message.chat.id, f"Մենք գրանցեցինք ձեր ուղևորությունը:")
-                else:
-                    self.bot.send_message(message.chat.id, f"arka e texnikakan xndir, xndrum enq porcel mi poqr ush")
+                self.publish_ride(message)
 
                 self.ride = RideModel()
                 self.car = CarModel()
+
+    def publish_ride(self, message, car_id=None, user_id=None):
+        if self.check_ignore("publish_ride" + str(message.chat.id)):
+            self.append_ignore("publish_ride" + str(message.chat.id))
+            if car_id is not None and user_id is not None:
+                self.ride.car_id = car_id
+                self.ride.user_id = user_id
+
+            ride = self.ride.save_ride()
+            self.clear_history(message.chat.id)
+            if ride['code'] == 401:
+                self.bot.send_message(message.chat.id,
+                                      f"uxevorutyunneri mijev petq e lini mininimum mek jam tarberutyun :")
+            elif ride['code'] == 201:
+                self.bot.send_message(message.chat.id, f"Մենք գրանցեցինք ձեր ուղևորությունը:")
+            else:
+                self.bot.send_message(message.chat.id, f"arka e texnikakan xndir, xndrum enq porcel mi poqr ush")
 
     def get_ride_list(self, message, action):
         data = self.ride_repo.ride_list(message.chat.id, action)
