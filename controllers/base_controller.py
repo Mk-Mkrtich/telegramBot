@@ -1,3 +1,4 @@
+from components.generate_cars_buttons import generate_cars_buttons
 from components.places_buttons_component import generate
 from db.models.car_model import CarModel
 from repository.booking_repository import BookingRepository
@@ -9,6 +10,7 @@ from db.models.cities_model import CitiesModel
 from components.city_component import generate_city_buttons
 import datetime
 from configs.storage import ids, passenger
+from db.models.car_model import CarModel
 
 
 class BaseController:

@@ -163,6 +163,13 @@ def callback(callback):
         user.set_role(callback.message.chat.id, 'none')
     elif data == "baggage":
         driver_handler.set_baggage(callback.message, fullData[1])
+
+    elif data == "userNewCar":
+        driver_handler.set_new_car(callback.message, fullData[1])
+    elif data == "userCar":
+        driver_handler.publish_ride(callback.message, fullData[1], fullData[2])
+
+
     elif data == "ridesForPassenger":
         passenger_handler.handle_ride_find(callback.message, fullData[1])
     elif data == "showRideForPassenger":
