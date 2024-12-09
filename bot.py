@@ -1,4 +1,3 @@
-
 from dotenv import load_dotenv
 import os
 import telebot
@@ -6,8 +5,9 @@ from telebot.types import KeyboardButton
 from telebot import types
 from controllers.driver_controller import DriverController
 from controllers.passenger_controller import PassengerController
+from controllers.ride_controller import RideController
 from controllers.supoport_controller import SupportController
-from configs.storage import ids, next, user_ratings, can_not, commandList
+from configs.storage import ids, next, user_ratings, can_not, commandList, cash
 from repository.user_repository import UserRepository
 
 load_dotenv()
@@ -15,6 +15,7 @@ load_dotenv()
 bot = telebot.TeleBot(os.getenv('TELEGRAM_TOKEN'))
 
 driver_handler = DriverController(bot)
+ride_handler = RideController(bot)
 passenger_handler = PassengerController(bot)
 support_handler = SupportController(bot)
 user = UserRepository()
@@ -43,8 +44,11 @@ def start(message):
 
         if command in commands_dict:
             commands_dict[command](message)
+        if cash.get(message.chat.id):
+            cash.pop(message.chat.id)
     else:
         bot.send_message(message.chat.id, "try later")
+
 
 def bookslist(message):
     passenger_handler.clear_history(message.chat.id)
@@ -52,8 +56,8 @@ def bookslist(message):
 
 
 def rideslist(message):
-    driver_handler.clear_history(message.chat.id)
-    driver_handler.get_ride_list(message, "first")
+    ride_handler.clear_history(message.chat.id)
+    ride_handler.get_ride_list(message, 'driver')
 
 
 def passenger(message):
@@ -170,24 +174,23 @@ def callback(callback):
         driver_handler.publish_ride(callback.message, fullData[1], fullData[2])
 
 
-    elif data == "ridesForPassenger":
-        passenger_handler.handle_ride_find(callback.message, fullData[1])
-    elif data == "showRideForPassenger":
-        passenger_handler.show_ride(callback.message, fullData[1], fullData[2])
-    elif data == "ridesForDriver":
-        driver_handler.get_ride_list(callback.message, fullData[1])
-    elif data == "showRideForDriver":
-        driver_handler.show_ride(callback.message, fullData[1])
+    # elif data == "showRideForPassenger":
+    #     passenger_handler.show_ride(callback.message, fullData[1], fullData[2])
+    elif data == "showRide":
+        ride_handler.show_ride(callback.message, fullData[1], fullData[2])
+    elif data == "rideList":
+        ride_handler.get_ride_list(callback.message, fullData[1])
     elif data == "cancelRide":
-        driver_handler.cancel_ride(callback.message, fullData[1])
+        ride_handler.cancel_ride(callback.message, fullData[1])
     elif data == "bookRide":
         passenger_handler.book_ride(callback.message, fullData[1], fullData[2])
-    elif data == "booksList":
-        passenger_handler.get_books_list(callback.message, fullData[1])
-    elif data == "showBook":
-        passenger_handler.show_book(callback.message, fullData[1])
-    elif data == "cancelBook":
-        passenger_handler.cancel_book(callback.message, fullData[1])
+    elif data == "suggestRide":
+        ride_handler.suggest_ride_list(callback.message, {"from_city_id": fullData[1], "to_city_id": fullData[2],
+                                                          "date": fullData[3], "free_places": fullData[4]})
+    # elif data == "showBook":
+    #     passenger_handler.show_book(callback.message, fullData[1])
+    # elif data == "cancelBook":
+    #     passenger_handler.cancel_book(callback.message, fullData[1])
 
 
 # def validate_user(message):

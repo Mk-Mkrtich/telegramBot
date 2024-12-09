@@ -93,10 +93,10 @@ class DriverController(BaseController):
                 ids.add(self.bot.send_message(message.chat.id, "Կրկին փորձեք՝ --> օրինակ՝ 123 AB 12 կամ 12 AB 123 <--", ).id)
                 self.bot.register_next_step_handler(message, self.set_car_number)
             else:
+
                 self.append_ignore("set_car_number_selection_" + str(message.chat.id))
                 ids.add(message.message_id)
                 ids.add(self.bot.send_message(message.chat.id, f"Ձեր մեքենայի պետ. համարըանիշը: {message.text}").id)
-
 
                 self.car.number = message.text
                 self.car.tuid = message.chat.id
@@ -127,16 +127,12 @@ class DriverController(BaseController):
             else:
                 self.bot.send_message(message.chat.id, f"arka e texnikakan xndir, xndrum enq porcel mi poqr ush")
 
-    def get_ride_list(self, message, action):
-        data = self.ride_repo.ride_list(message.chat.id, action)
-        self.clear_history(message.chat.id)
-        ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
-
-    def show_ride(self, message, id):
-        ids.add(message.message_id)
-        data = self.ride_repo.show_ride(id, "driver")
-        ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
-
-    def cancel_ride(self, message, ride_id):
-        self.ride_repo.cancel_ride_by_id(message, self.bot, ride_id)
-        self.get_ride_list(message, "first")
+    #
+    # def show_ride(self, message, id):
+    #     ids.add(message.message_id)
+    #     data = self.ride_repo.show_ride(id, "driver")
+    #     ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
+    #
+    # def cancel_ride(self, message, ride_id):
+    #     self.ride_repo.cancel_ride_by_id(message, self.bot, ride_id)
+    #     self.get_ride_list(message, "first")
