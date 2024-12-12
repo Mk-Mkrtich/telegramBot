@@ -3,6 +3,8 @@ import os
 import telebot
 from telebot.types import KeyboardButton
 from telebot import types
+
+from controllers.booking_controller import BookingController
 from controllers.driver_controller import DriverController
 from controllers.passenger_controller import PassengerController
 from controllers.ride_controller import RideController
@@ -16,6 +18,7 @@ bot = telebot.TeleBot(os.getenv('TELEGRAM_TOKEN'))
 
 driver_handler = DriverController(bot)
 ride_handler = RideController(bot)
+booking_handler = BookingController(bot)
 passenger_handler = PassengerController(bot)
 support_handler = SupportController(bot)
 user = UserRepository()
@@ -51,8 +54,8 @@ def start(message):
 
 
 def bookslist(message):
-    passenger_handler.clear_history(message.chat.id)
-    passenger_handler.get_books_list(message, 'first')
+    booking_handler.clear_history(message.chat.id)
+    booking_handler.get_booking_list(message)
 
 
 def rideslist(message):
@@ -183,14 +186,16 @@ def callback(callback):
     elif data == "cancelRide":
         ride_handler.cancel_ride(callback.message, fullData[1])
     elif data == "bookRide":
-        passenger_handler.book_ride(callback.message, fullData[1], fullData[2])
+        booking_handler.booking_ride(callback.message, fullData[1], fullData[2])
     elif data == "suggestRide":
         ride_handler.suggest_ride_list(callback.message, {"from_city_id": fullData[1], "to_city_id": fullData[2],
                                                           "date": fullData[3], "free_places": fullData[4]})
-    # elif data == "showBook":
-    #     passenger_handler.show_book(callback.message, fullData[1])
-    # elif data == "cancelBook":
-    #     passenger_handler.cancel_book(callback.message, fullData[1])
+    elif data == "showBook":
+        booking_handler.show_booking(callback.message, fullData[1])
+    elif data == "booksList":
+        booking_handler.get_booking_list(callback.message)
+    elif data == "cancelBook":
+        booking_handler.cancel_booking(callback.message, fullData[1])
 
 
 # def validate_user(message):

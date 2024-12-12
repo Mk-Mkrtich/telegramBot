@@ -23,26 +23,40 @@ class RideRepository:
         if ride is None:
             return {"markup": markup, "rides_text": "Ուղևորություններ չեն գտնվել"}
 
-        print(ride)
-        rides_text = (f"Ride ID: {str(ride['id'])}\n"
-                      f"Yours ID: {str(ride['user']['uuid'])}\n"
-                      f"{start} {ride['from_city']['name']} "
-                      f"{finish} {ride['to_city']['name']}\n"
-                      f"{date} {ride['date']} "
-                      f"{time} {datetime.strptime(ride['time'], "%H:%M:%S").strftime("%H:%M")}\n"
-                      f"{passenger} {ride['free_places']} / {ride['places']} "
-                      f"{price} {ride['price']}֏\n"
-                      f"{car} {ride['car']['color']} {ride['car']['model']} "
-                      f"{str(ride['car']['number']).upper().replace(" ", "")}\n"
-                      )
+        rides_text = ''
+        if self.ride.action == 'driver':
+            rides_text += (f"Ride ID: {str(ride['id'])}\n"
+                           f"Yours ID: {str(ride['user']['uuid'])}\n")
+
+        rides_text += (f"{start} {ride['from_city']['name']} "
+                       f"{finish} {ride['to_city']['name']}\n"
+                       f"{date} {ride['date']} "
+                       f"{time} {datetime.strptime(ride['time'], "%H:%M:%S").strftime("%H:%M")}\n"
+                       f"{passenger} {ride['free_places']} / {ride['places']} "
+                       f"{price} {ride['price']}֏\n"
+                       f"{car} {ride['car']['color']} {ride['car']['model']} "
+                       f"{str(ride['car']['number']).upper().replace(" ", "")}\n"
+                       )
 
         if self.ride.action == 'driver':
+            rides_text += (f"\n_____________________\n\n"
+                           f"Bookings List\n")
+            for booking in ride['bookings']:
+                rides_text += (
+                    f"____________________\n"
+                    f"user: Nº/ {booking['passenger_id']}\n"
+                    f"user name: @{booking['passenger_username']}\n"
+                    f"{passenger} {booking['places']} / {price} {booking['total_price']}\n")
+
             cancel = types.InlineKeyboardButton(f"{to_cancel}", callback_data="cancelRide_" + str(ride['id']))
             back = types.InlineKeyboardButton(f"{to_back}", callback_data="rideList_" + self.ride.action)
             markup.add(cancel)
 
         else:
-            rides_text += (f"varordi varkanish {ride['user']['rating']['rating']}\n\n"
+            rides_text += (f"\n\nvarordi varkanish {ride['user']['rating']['rating']}\n"
+                           f"chexarkumneri qanak {ride['user']['history']['cancelled']}\n"
+                           f"uxevorutyunneri qanak {ride['user']['history']['rides']}\n"
+                           f"boxoqneri qanak {ride['user']['rating']['scumbags']}\n\n"
                            f"Ընտրեք տեղերի քանակը ամրագրման համար")
             places_count = []
             for i in range(1, int(ride['free_places']) + 1):
@@ -121,11 +135,13 @@ class RideRepository:
                                     f" {finish} {str(ride['to_city']['name'])} "
                                     f" {date} {str(ride['date'])} "
                                     f" {datetime.strptime(str(ride['time']), "%H:%M:%S").strftime("%H:%M")}"
-                                    f"{passenger} {str(ride['free_places'])}/{str(ride['places'])}")
+                                    f"{passenger} {str(ride['free_places'])}/{str(ride['places'])}"
+                                    )
             else:
-                ride_button_text = (f"{price} {ride['car']['color']} {ride['car']['model']} {date} {str(ride['date'])}"
-                                    f" {datetime.strptime(ride['time'], "%H:%M:%S").strftime("%H:%M")}"
-                                    f" {str(ride['time'])}")
+                ride_button_text = (f"{price} {ride['car']['color']} {ride['car']['model']}"
+                                    f" {time} {datetime.strptime(ride['time'], "%H:%M:%S").strftime("%H:%M")}"
+                                    f"{passenger} {str(ride['free_places'])}/{str(ride['places'])} "
+                                    )
 
             btn = types.InlineKeyboardButton(ride_button_text, callback_data="showRide_" + str(ride['id'])
                                                                              + "_" + self.ride.action)

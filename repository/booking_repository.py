@@ -1,3 +1,10 @@
+from datetime import datetime
+
+from telebot import types
+
+from configs.storage import price, time, car, start, finish, date, passenger, to_cancel, to_back
+
+
 class BookingRepository:
 
     def __init__(self, bot):
@@ -9,65 +16,54 @@ class BookingRepository:
         self.bookings.book_the_ride()
         return {'text': 'Booking successful'}
 
-    # def get_books_list(self, user_id, action):
-    #     books = self.bookings.get_books_by_user(user_id, action)
-    #     markup = types.InlineKeyboardMarkup()
-    #
-    #     if len(books) == 0:
-    #         return {"markup": markup,
-    #                 "rides_text": "Դուք դեռ չեք ամրագրել ուղևորություններ: \n"
-    #                               "Ամրագրման համար կարող եք սեղմել այստեղ /passenger"}
-    #
-    #     rides_text = "Սա Ձեր ամրագրումների ցանկն է: \n\n"
-    #
-    #     for book in books:
-    #         ride_button_text = (f"{price} {str(book['price'])} "
-    #                             f"{time} {str(book['ride_time'])} "
-    #                             f"{car} {book['car_color']} {book['car_mark']} ")
-    #         btn = types.InlineKeyboardButton(ride_button_text, callback_data="showBook_" + str(book['id']))
-    #         markup.add(btn)
-    #
-    #     markup.row(*generate('booksList'))
-    #
-    #     return {"markup": markup, "rides_text": rides_text}
-    #
-    # def show_book(self, book_id):
-    #     book = self.bookings.get_book(book_id)
-    #     markup = types.InlineKeyboardMarkup()
-    #     user = self.user_repository.check_user_status(book['user_id'])
-    #
-    #     rides_text = (f"Դուք ամրագրել եք {str(book['booked_places'])} տեղ \n\n"
-    #                   f"{start} {book['from_city']} "
-    #                   f"{finish} {book['to_city']}\n"
-    #                   f"{price} {book['price']} դրամ, ընդ. {book['booked_places'] * book['price']} դրամ\n"
-    #                   f"{date} {book['ride_date']} "
-    #                   f"{time} {book['ride_time']}\n"
-    #                   f"{car} {book['car_color']} {book['car_mark']} "
-    #                   f"{str(book['car_number']).upper().replace(" ", "")}\n"
-    #                   f"{passenger} @{book['user_name']} "
-    #                   f"ID: {book['user_id']}\n"
-    #                   f"{user['text']} Վարորդի վարկանիշ \n\n"
-    #                   )
-    #     btn = types.InlineKeyboardButton(f'{to_cancel}', callback_data="cancelBook_" + str(book['id']))
-    #     back = types.InlineKeyboardButton(f"{to_back}", callback_data="booksList_first")
-    #     markup.add(btn, back)
-    #     return {"markup": markup, "rides_text": rides_text}
-    #
-    # def cancel_book(self, book_id):
-    #     book = self.bookings.get_book(book_id)
-    #     ride_id = book['ride_id']
-    #     places = int(book['free_places']) + int(book['booked_places'])
-    #     if places > book['places']:
-    #         places = book['places']
-    #     self.ride.update(ride_id, places)
-    #
-    #     self.bot.send_message(book['user_id'], (
-    #         f'Ողջույն {book['user_name']}, ուղևորներից մեկը չեղարկել է ամրագրումը\n\n'
-    #         f' {book['from_city']}ից {book['to_city']}\n'
-    #         f' {date} {book['ride_date']} {time} {book['ride_time']} \n\n'
-    #         f"այժմ դուք ունեք ևս {book['booked_places']} ազատ տեղ"))
-    #     self.bookings.delete_book(book_id)
-    #
-    #     rides_text = "Դուք չեղարկել եք ամրագրումը"
-    #
-    #     return {"rides_text": rides_text}
+    def get_books_list(self, model):
+        self.bookings = model
+        books = self.bookings.get_list()['data']
+        print(books)
+        markup = types.InlineKeyboardMarkup()
+
+        if len(books) == 0:
+            return {"markup": markup,
+                    "rides_text": "Դուք դեռ չեք ամրագրել ուղևորություններ: \n"
+                                  "Ամրագրման համար կարող եք սեղմել այստեղ /passenger"}
+
+        rides_text = "Սա Ձեր ամրագրումների ցանկն է: \n\n"
+
+        for book in books:
+            ride_button_text = (f"{start} {str(book['ride']['from_city']['name'])} "
+                                f"{date} {str(book['ride']['date'])} "
+                                f"{passenger} {str(book['places'])} / "
+                                f"{price} {str(book['total_price'])}")
+            btn = types.InlineKeyboardButton(ride_button_text, callback_data="showBook_" + str(book['id']))
+            markup.add(btn)
+
+        return {"markup": markup, "rides_text": rides_text}
+
+    def show_booking_details(self, model):
+        self.bookings = model
+        booking = self.bookings.get_book()['data']
+        print(booking)
+        markup = types.InlineKeyboardMarkup()
+        rides_text = (f"{start} {booking['ride']['from_city']['name']} {finish} {booking['ride']['to_city']['name']}\n"
+                      f"{date} {booking['ride']['date']} "
+                      f"{time} {datetime.strptime(booking['ride']['time'], "%H:%M:%S").strftime("%H:%M")}\n"
+                      f"{car} {booking['ride']['car']['color']} {booking['ride']['car']['model']} "
+                      f"{str(booking['ride']['car']['number']).upper().replace(" ", "")}\n\n"
+                      f"{passenger} {booking['places']} / {price} {str(booking['total_price'])}\n\n"
+                      f"____________________\n"
+                      f"driver: Nº/ {booking['ride']['user']['uuid']}\n"
+                      f"username: @{booking['ride']['user']['username']}"
+                      )
+        btn = types.InlineKeyboardButton(f'{to_cancel}', callback_data="cancelBook_" + str(booking['id']))
+        back = types.InlineKeyboardButton(f"{to_back}", callback_data="booksList")
+        markup.add(btn, back)
+        return {"markup": markup, "rides_text": rides_text}
+
+    def cancel(self, model):
+        self.bookings = model
+        cancel = self.bookings.cancel_booking()['data']
+        if cancel:
+            rides_text = "Դուք չեղարկել եք ամրագրումը"
+        else:
+            rides_text = "try later"
+        return {"rides_text": rides_text}

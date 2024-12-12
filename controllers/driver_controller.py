@@ -40,9 +40,10 @@ class DriverController(BaseController):
             ids.add(self.bot.send_message(message.chat.id, f"Ընտրված գինը. {price}").id)
 
             self.car.tuid = message.chat.id
-            cars = self.car.get_car()
-            if cars['data'] is not None:
-                markup = generate_cars_buttons(cars['data'])
+            cars = self.car.get_car()['data']
+            print(cars, 'cars data')
+            if cars:
+                markup = generate_cars_buttons(cars)
                 ids.add(self.bot.send_message(message.chat.id, "testttttttttttttւ", reply_markup=markup).id)
             else:
                 markup = generate_color_buttons()

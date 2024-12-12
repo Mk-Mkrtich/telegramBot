@@ -45,14 +45,6 @@ class PassengerController(BaseController):
     #     data = self.ride_repo.show_ride(id, "passenger", suggest)
     #     ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
     #
-    def book_ride(self, message, ride_id, places):
-        ids.add(message.message_id)
-        self.clear_history(message.chat.id)
-        self.booking.ride_id = ride_id
-        self.booking.passenger_id = message.chat.id
-        self.booking.places = places
-        data = self.book_repo.book_ride(self.booking)
-        self.bot.send_message(message.chat.id, data['text'])
     #
     # def get_books_list(self, message, action):
     #     self.clear_history(message.chat.id)
