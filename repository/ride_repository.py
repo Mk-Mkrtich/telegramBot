@@ -2,7 +2,6 @@ from datetime import datetime
 
 from telebot import types
 
-from db.models.ride_model import RideModel
 from repository.user_repository import UserRepository
 from configs.storage import start, finish, date, time, passenger, price, car, to_back, to_cancel, cash
 
@@ -44,9 +43,13 @@ class RideRepository:
             for booking in ride['bookings']:
                 rides_text += (
                     f"____________________\n"
-                    f"user: Nº/ {booking['passenger_id']}\n"
-                    f"user name: @{booking['passenger_username']}\n"
-                    f"{passenger} {booking['places']} / {price} {booking['total_price']}\n")
+                    f"user: Nº/ {booking['passenger_id']}\n")
+                if booking['passenger_username']:
+                    rides_text += f"username: @{booking['passenger_username']}\n"
+                else:
+                    rides_text += f"phone: +{booking['passenger_phone']}\n"
+
+                rides_text += f"{passenger} {booking['places']} / {price} {booking['total_price']}\n"
 
             cancel = types.InlineKeyboardButton(f"{to_cancel}", callback_data="cancelRide_" + str(ride['id']))
             back = types.InlineKeyboardButton(f"{to_back}", callback_data="rideList_" + self.ride.action)

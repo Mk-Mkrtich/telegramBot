@@ -1,9 +1,7 @@
 from dotenv import load_dotenv
 import os
 import telebot
-from telebot.types import KeyboardButton
 from telebot import types
-
 from controllers.booking_controller import BookingController
 from controllers.driver_controller import DriverController
 from controllers.passenger_controller import PassengerController
@@ -27,13 +25,19 @@ user = UserRepository()
 @bot.message_handler(content_types=['contact'])
 def contact(message):
     if message.contact is not None:
-        phone_number = message.contact.phone_number
-        bot.send_message(message.chat.id, f"Thank you for sharing your phone number: {phone_number}")
+        checked_user = user.check_user(message)
+        if checked_user['ok']:
+            bot.send_message(message.chat.id,
+                             f"Thank you for sharing your phone number: now you can continue using the bot")
+        else:
+            bot.send_message(message.chat.id,
+                             f"somthing went wrong, please try later")
 
 
 @bot.message_handler(commands=commandList)
 def start(message):
-    if user.check_user(message):
+    checked_user = user.check_user(message)
+    if checked_user['ok']:
         command = message.text[1:]
         commands_dict = {
             'start': start_function,
@@ -42,7 +46,6 @@ def start(message):
             'passenger': passenger,
             'rideslist': rideslist,
             'bookslist': bookslist,
-            'support': support,
         }
 
         if command in commands_dict:
@@ -50,7 +53,14 @@ def start(message):
         if cash.get(message.chat.id):
             cash.pop(message.chat.id)
     else:
-        bot.send_message(message.chat.id, "try later")
+        if checked_user['message'] == 'contact':
+            ids.add(bot.send_message(message.chat.id,
+                                     "Խնդրում ենք ավելացնել օգտատիրոջ անուն՝ \n\n օրինակ @find_way_arm_bot, kam "
+                                     "karox eq poxancel dzer heraxosahamar@").id)
+            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+            button_phone = types.KeyboardButton(text="Share phone number", request_contact=True)
+            markup.add(button_phone)
+            bot.send_message(message.chat.id, "sexmelov aystex ⬇️:", reply_markup=markup)
 
 
 def bookslist(message):
@@ -73,15 +83,6 @@ def driver(message):
     driver_handler.clear_history(message.chat.id)
     user.set_role(message.chat.id, 'driver')
     driver_handler.start(message)
-
-
-def support(message):
-    driver_handler.clear_history(message.chat.id)
-    if message.chat.username is None:
-        return ids.add(bot.send_message(message.chat.id,
-                                        "Խնդրում ենք ավելացնել  օգտատիրոջ անուն՝ \n\n օրինակ @find_way_arm_bot").id)
-    support_handler.support_message(message)
-
 
 def help(message):
     driver_handler.clear_history(message.chat.id)
@@ -127,7 +128,6 @@ def start_function(message):
             f"եթե ցանկանում եք գտնել ուղևորներ` սեղմեք այստեղ {next} /driver \n\n"
             f"Կարող եք տեսնել ձեր ամրագրված տեղերը՝ սեղմելով այստեղ {next} /bookslist \n\n"
             f"Դուք կարող եք գտնել ձեր ճանապարհորդությունները՝ սեղմելով այստեղ {next} /rideslist \n\n"
-            f"Եվ եթե որևէ խնդիր ունեք, կարող եք գրել մեր աջակցման թիմին՝ սեղմելով այստեղ {next} /support \n\n\n"
 
             f"Փորձեք նաև գտնել այս հրամանը ներքևի ձախ անկյունում՝ սեղմելով ցանկի կոճակը ↙️")
     bot.send_message(message.chat.id, text)
@@ -175,10 +175,6 @@ def callback(callback):
         driver_handler.set_new_car(callback.message, fullData[1])
     elif data == "userCar":
         driver_handler.publish_ride(callback.message, fullData[1], fullData[2])
-
-
-    # elif data == "showRideForPassenger":
-    #     passenger_handler.show_ride(callback.message, fullData[1], fullData[2])
     elif data == "showRide":
         ride_handler.show_ride(callback.message, fullData[1], fullData[2])
     elif data == "rideList":
@@ -196,24 +192,6 @@ def callback(callback):
         booking_handler.get_booking_list(callback.message)
     elif data == "cancelBook":
         booking_handler.cancel_booking(callback.message, fullData[1])
-
-
-# def validate_user(message):
-#     user = UserRepository()
-#     if message.chat.username is None:
-#         ids.add(bot.send_message(message.chat.id,
-#                                  "Խնդրում ենք ավելացնել օգտատիրոջ անուն՝ \n\n օրինակ @find_way_arm_bot").id)
-#         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-#         button_phone = types.KeyboardButton(text="Share phone number", request_contact=True)
-#         markup.add(button_phone)
-#         bot.send_message(message.chat.id, "Please share your phone number:", reply_markup=markup)
-#         return True
-#     user_check_data = user.check_user(message)
-#     if user_check_data:
-#         ids.add(bot.send_message(message.chat.id, user_check_data['text']).id)
-#         return True
-#
-#     return False
 
 
 bot.polling(none_stop=True)

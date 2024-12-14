@@ -6,6 +6,7 @@ from components.time_component import generate_time_buttons
 from configs.storage import ids, can_not, time, passenger, months
 from components.places_buttons_component import generate
 
+
 class CalendarComponent:
 
     def __init__(self):

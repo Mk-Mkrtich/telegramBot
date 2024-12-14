@@ -39,26 +39,3 @@ class PassengerController(BaseController):
         self.ride.free_places = data['free_places']
         data = self.ride_repo.ride_list(self.ride)
         ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
-
-    # def show_ride(self, message, id, suggest=None):
-    #     ids.add(message.message_id)
-    #     data = self.ride_repo.show_ride(id, "passenger", suggest)
-    #     ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
-    #
-    #
-    # def get_books_list(self, message, action):
-    #     self.clear_history(message.chat.id)
-    #     data = self.book.get_books_list(message.chat.id, action)
-    #     ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
-    #
-    # def show_book(self, message, book_id):
-    #     ids.add(message.message_id)
-    #     data = self.book.show_book(book_id)
-    #     ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
-    #
-    # def cancel_book(self, message, book_id):
-    #     ids.add(message.message_id)
-    #     data = self.book.cancel_book(book_id)
-    #     ids.add(self.bot.send_message(message.chat.id, data['rides_text']).id)
-    #     self.get_books_list(message, 'first')
-

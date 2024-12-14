@@ -1,6 +1,4 @@
 from admin.api_call import admin_call
-from db.models.base_model import BaseModel
-from db.models.pagination import Paginator
 
 
 class RideModel:

@@ -1,13 +1,5 @@
-from admin.api_call import admin_call
-from components.generate_cars_buttons import generate_cars_buttons
-from db.models.car_model import CarModel
-from db.models.ride_model import RideModel
 from controllers.base_controller import BaseController
-import re
-from components.price_buttons_component import generate_price_buttons
-from components.car_collor_component import generate_color_buttons
-from components.baggage_component import generate_baggage_buttons
-from configs.storage import ids, start, finish, date, time, passenger, price, car, colors, commandList
+from configs.storage import ids
 
 
 class RideController(BaseController):

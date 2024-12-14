@@ -4,10 +4,10 @@ from admin.api_call import admin_call
 class CarModel:
 
     def __init__(self):
-        self.model = '',
-        self.color = '',
-        self.number = '',
-        self.tuid = ''
+        self.model = None,
+        self.color = None,
+        self.number = None,
+        self.tuid = None
 
     def check_car(self):
         print(self.__dict__)

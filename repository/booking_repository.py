@@ -1,7 +1,5 @@
 from datetime import datetime
-
 from telebot import types
-
 from configs.storage import price, time, car, start, finish, date, passenger, to_cancel, to_back
 
 
@@ -52,8 +50,12 @@ class BookingRepository:
                       f"{passenger} {booking['places']} / {price} {str(booking['total_price'])}\n\n"
                       f"____________________\n"
                       f"driver: Nº/ {booking['ride']['user']['uuid']}\n"
-                      f"username: @{booking['ride']['user']['username']}"
                       )
+        if booking['ride']['user']['username'] is not None:
+            rides_text += f"username: @{booking['ride']['user']['username']}"
+        else:
+            rides_text += f"phone: +{booking['ride']['user']['phone']}"
+
         btn = types.InlineKeyboardButton(f'{to_cancel}', callback_data="cancelBook_" + str(booking['id']))
         back = types.InlineKeyboardButton(f"{to_back}", callback_data="booksList")
         markup.add(btn, back)
