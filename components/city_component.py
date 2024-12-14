@@ -1,5 +1,6 @@
 from telebot import types
 
+
 def generate_city_buttons(city_list, prefix):
     markup = types.InlineKeyboardMarkup()
     chunk = chunk_array(city_list)
@@ -11,6 +12,7 @@ def generate_city_buttons(city_list, prefix):
                 cit.append(btn)
         markup.row(*cit)
     return markup
+
 
 def chunk_array(array, chunk_size=3):
     return [array[i:i + chunk_size] for i in range(0, len(array), chunk_size)]

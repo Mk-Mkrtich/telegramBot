@@ -1,7 +1,8 @@
 ids = set()
+cash = dict()
 car = "🚗"
 date = "📅"
-time = ""
+time = "🕔"
 start = "📍"
 finish = "->"
 can_not = "❗️"

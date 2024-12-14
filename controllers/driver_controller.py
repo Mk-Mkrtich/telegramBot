@@ -1,4 +1,3 @@
-from admin.api_call import admin_call
 from components.generate_cars_buttons import generate_cars_buttons
 from db.models.car_model import CarModel
 from db.models.ride_model import RideModel
@@ -7,7 +6,7 @@ import re
 from components.price_buttons_component import generate_price_buttons
 from components.car_collor_component import generate_color_buttons
 from components.baggage_component import generate_baggage_buttons
-from configs.storage import ids, start, finish, date, time, passenger, price, car, colors, commandList
+from configs.storage import ids, colors, commandList
 
 
 class DriverController(BaseController):
@@ -40,9 +39,10 @@ class DriverController(BaseController):
             ids.add(self.bot.send_message(message.chat.id, f"Ընտրված գինը. {price}").id)
 
             self.car.tuid = message.chat.id
-            cars = self.car.get_car()
-            if cars['data'] is not None:
-                markup = generate_cars_buttons(cars['data'])
+            cars = self.car.get_car()['data']
+            print(cars, 'cars data')
+            if cars:
+                markup = generate_cars_buttons(cars)
                 ids.add(self.bot.send_message(message.chat.id, "testttttttttttttւ", reply_markup=markup).id)
             else:
                 markup = generate_color_buttons()
@@ -93,10 +93,10 @@ class DriverController(BaseController):
                 ids.add(self.bot.send_message(message.chat.id, "Կրկին փորձեք՝ --> օրինակ՝ 123 AB 12 կամ 12 AB 123 <--", ).id)
                 self.bot.register_next_step_handler(message, self.set_car_number)
             else:
+
                 self.append_ignore("set_car_number_selection_" + str(message.chat.id))
                 ids.add(message.message_id)
                 ids.add(self.bot.send_message(message.chat.id, f"Ձեր մեքենայի պետ. համարըանիշը: {message.text}").id)
-
 
                 self.car.number = message.text
                 self.car.tuid = message.chat.id
@@ -127,16 +127,3 @@ class DriverController(BaseController):
             else:
                 self.bot.send_message(message.chat.id, f"arka e texnikakan xndir, xndrum enq porcel mi poqr ush")
 
-    def get_ride_list(self, message, action):
-        data = self.ride_repo.ride_list(message.chat.id, action)
-        self.clear_history(message.chat.id)
-        ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
-
-    def show_ride(self, message, id):
-        ids.add(message.message_id)
-        data = self.ride_repo.show_ride(id, "driver")
-        ids.add(self.bot.send_message(message.chat.id, data['rides_text'], reply_markup=data['markup']).id)
-
-    def cancel_ride(self, message, ride_id):
-        self.ride_repo.cancel_ride_by_id(message, self.bot, ride_id)
-        self.get_ride_list(message, "first")

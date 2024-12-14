@@ -1,10 +1,8 @@
-from components.generate_cars_buttons import generate_cars_buttons
 from components.places_buttons_component import generate
-from db.models.car_model import CarModel
+from db.models.books_model import BookingsModel
 from repository.booking_repository import BookingRepository
 from repository.ride_repository import RideRepository
 from db.models.ride_model import RideModel
-from db.models.support_model import SupportModel
 from components.calendar_component import CalendarComponent
 from db.models.cities_model import CitiesModel
 from components.city_component import generate_city_buttons
@@ -19,8 +17,8 @@ class BaseController:
         self.bot = bot
         self.ride = RideModel()
         self.car = CarModel()
-        self.support = SupportModel()
-        self.book = BookingRepository(bot)
+        self.booking = BookingsModel()
+        self.book_repo = BookingRepository(bot)
         self.calendar = CalendarComponent()
         self.ride_repo = RideRepository(bot)
         self.ignore_action = []
