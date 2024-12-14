@@ -6,7 +6,6 @@ from controllers.booking_controller import BookingController
 from controllers.driver_controller import DriverController
 from controllers.passenger_controller import PassengerController
 from controllers.ride_controller import RideController
-from controllers.supoport_controller import SupportController
 from configs.storage import ids, next, user_ratings, can_not, commandList, cash
 from repository.user_repository import UserRepository
 
@@ -18,7 +17,6 @@ driver_handler = DriverController(bot)
 ride_handler = RideController(bot)
 booking_handler = BookingController(bot)
 passenger_handler = PassengerController(bot)
-support_handler = SupportController(bot)
 user = UserRepository()
 
 
