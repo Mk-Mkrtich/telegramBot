@@ -1,20 +1,21 @@
 from admin.api_call import admin_call
+from db.models.typed_model_attribute import TypedAttribute
 
 
 class RideModel:
     def __init__(self):
-        self.id = None
-        self.from_city_id = None
-        self.to_city_id = None
-        self.date = None
-        self.time = None
-        self.places = None
-        self.free_places = None
-        self.price = None
-        self.baggage = None
-        self.car_id = None
-        self.user_id = None
-        self.action = None
+        self.id = TypedAttribute(int)
+        self.from_city_id = TypedAttribute(int)
+        self.to_city_id = TypedAttribute(int)
+        self.date = TypedAttribute(str)
+        self.time = TypedAttribute(str)
+        self.places = TypedAttribute(int)
+        self.free_places = TypedAttribute(int)
+        self.price = TypedAttribute(int)
+        self.baggage = TypedAttribute(bool)
+        self.car_id = TypedAttribute(int)
+        self.user_id = TypedAttribute(int)
+        self.action = TypedAttribute(str)
 
     def save_ride(self):
         new_ride = admin_call(self.__dict__, "tride/create", 'POST')

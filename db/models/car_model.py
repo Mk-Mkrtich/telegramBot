@@ -1,13 +1,13 @@
 from admin.api_call import admin_call
-
+from .typed_model_attribute import TypedAttribute
 
 class CarModel:
 
     def __init__(self):
-        self.model = None,
-        self.color = None,
-        self.number = None,
-        self.tuid = None
+        self.model = TypedAttribute(str),
+        self.color = TypedAttribute(str),
+        self.number = TypedAttribute(str),
+        self.tuid = TypedAttribute(int)
 
     def check_car(self):
         print(self.__dict__)
