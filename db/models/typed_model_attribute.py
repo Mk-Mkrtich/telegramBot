@@ -7,7 +7,7 @@ class TypedAttribute:
         return self._value
 
     def __set__(self, instance, value):
-        if not isinstance(value, self.data_type):
+        if not isinstance(value, self.data_type) or value == None:
             raise TypeError(f"The type must be {self.data_type}")
         self._value = value
 

@@ -56,6 +56,7 @@ class RideRepository:
             markup.add(cancel)
 
         else:
+            print(ride)
             rides_text += (f"\n\nvarordi varkanish {ride['user']['rating']['rating']}\n"
                            f"chexarkumneri qanak {ride['user']['history']['cancelled']}\n"
                            f"uxevorutyunneri qanak {ride['user']['history']['rides']}\n"
